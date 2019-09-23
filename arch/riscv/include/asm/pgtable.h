@@ -35,9 +35,11 @@
 #define FIRST_USER_ADDRESS  0
 
 /* Page protection bits */
-#define _PAGE_BASE	(_PAGE_PRESENT | _PAGE_ACCESSED | _PAGE_USER)
+#define _PAGE_BASE	(_PAGE_PRESENT | _PAGE_ACCESSED | _PAGE_USER | \
+			 _PAGE_SHARE | _PAGE_CACHE | _PAGE_BUF)
 
-#define PAGE_NONE		__pgprot(_PAGE_PROT_NONE)
+#define PAGE_NONE		__pgprot(_PAGE_PROT_NONE | _PAGE_CACHE | \
+					 _PAGE_BUF | _PAGE_SHARE | _PAGE_SHARE)
 #define PAGE_READ		__pgprot(_PAGE_BASE | _PAGE_READ)
 #define PAGE_WRITE		__pgprot(_PAGE_BASE | _PAGE_READ | _PAGE_WRITE)
 #define PAGE_EXEC		__pgprot(_PAGE_BASE | _PAGE_EXEC)
@@ -55,10 +57,15 @@
 				| _PAGE_WRITE \
 				| _PAGE_PRESENT \
 				| _PAGE_ACCESSED \
-				| _PAGE_DIRTY)
+				| _PAGE_DIRTY \
+				| _PAGE_CACHE \
+				| _PAGE_SHARE \
+				| _PAGE_BUF)
 
 #define PAGE_KERNEL		__pgprot(_PAGE_KERNEL)
 #define PAGE_KERNEL_EXEC	__pgprot(_PAGE_KERNEL | _PAGE_EXEC)
+#define PAGE_KERNEL_SO		__pgprot((_PAGE_KERNEL | _PAGE_SO) & \
+					~(_PAGE_CACHE | _PAGE_BUF))
 
 #define PAGE_TABLE		__pgprot(_PAGE_TABLE)
 
@@ -167,18 +174,18 @@ static inline pgd_t *pgd_offset(const struct mm_struct *mm, unsigned long addr)
 
 static inline struct page *pmd_page(pmd_t pmd)
 {
-	return pfn_to_page(pmd_val(pmd) >> _PAGE_PFN_SHIFT);
+	return pfn_to_page((pmd_val(pmd) & _PAGE_CHG_MASK) >> _PAGE_PFN_SHIFT);
 }
 
 static inline unsigned long pmd_page_vaddr(pmd_t pmd)
 {
-	return (unsigned long)pfn_to_virt(pmd_val(pmd) >> _PAGE_PFN_SHIFT);
+	return (unsigned long)pfn_to_virt((pmd_val(pmd) & _PAGE_CHG_MASK) >> _PAGE_PFN_SHIFT);
 }
 
 /* Yields the page frame number (PFN) of a page table entry */
 static inline unsigned long pte_pfn(pte_t pte)
 {
-	return (pte_val(pte) >> _PAGE_PFN_SHIFT);
+	return ((pte_val(pte) & _PAGE_CHG_MASK) >> _PAGE_PFN_SHIFT);
 }
 
 #define pte_page(x)     pfn_to_page(pte_pfn(x))
@@ -403,6 +410,32 @@ static inline int ptep_clear_flush_young(struct vm_area_struct *vma,
 	 * pressure for swapout to react to. ]
 	 */
 	return ptep_test_and_clear_young(vma, address, ptep);
+}
+
+#define __HAVE_PHYS_MEM_ACCESS_PROT
+struct file;
+extern pgprot_t phys_mem_access_prot(struct file *file, unsigned long pfn,
+				     unsigned long size, pgprot_t vma_prot);
+
+#define pgprot_noncached pgprot_noncached
+static inline pgprot_t pgprot_noncached(pgprot_t _prot)
+{
+	unsigned long prot = pgprot_val(_prot);
+
+	prot &= ~(_PAGE_CACHE | _PAGE_BUF);
+	prot |= _PAGE_SO;
+
+	return __pgprot(prot);
+}
+
+#define pgprot_writecombine pgprot_writecombine
+static inline pgprot_t pgprot_writecombine(pgprot_t _prot)
+{
+	unsigned long prot = pgprot_val(_prot);
+
+	prot &= ~(_PAGE_CACHE | _PAGE_BUF);
+
+	return __pgprot(prot);
 }
 
 /*

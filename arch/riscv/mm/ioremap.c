@@ -50,26 +50,19 @@ static void __iomem *__ioremap_caller(phys_addr_t addr, size_t size,
 	return (void __iomem *)(vaddr + offset);
 }
 
-/*
- * ioremap     -   map bus memory into CPU space
- * @offset:    bus address of the memory
- * @size:      size of the resource to map
- *
- * ioremap performs a platform specific sequence of operations to
- * make bus memory CPU accessible via the readb/readw/readl/writeb/
- * writew/writel functions and the other mmio helpers. The returned
- * address is not guaranteed to be usable directly as a virtual
- * address.
- *
- * Must be freed with iounmap.
- */
-void __iomem *ioremap(phys_addr_t offset, unsigned long size)
+void __iomem *__ioremap(phys_addr_t phys_addr, size_t size, pgprot_t prot)
 {
-	return __ioremap_caller(offset, size, PAGE_KERNEL,
-		__builtin_return_address(0));
+	return __ioremap_caller(phys_addr, size, prot,
+				__builtin_return_address(0));
 }
-EXPORT_SYMBOL(ioremap);
+EXPORT_SYMBOL(__ioremap);
 
+void __iomem *ioremap_cache(phys_addr_t phys_addr, size_t size)
+{
+	return __ioremap_caller(phys_addr, size, PAGE_KERNEL,
+				__builtin_return_address(0));
+}
+EXPORT_SYMBOL(ioremap_cache);
 
 /**
  * iounmap - Free a IO remapping
@@ -82,3 +75,16 @@ void iounmap(volatile void __iomem *addr)
 	vunmap((void *)((unsigned long)addr & PAGE_MASK));
 }
 EXPORT_SYMBOL(iounmap);
+
+pgprot_t phys_mem_access_prot(struct file *file, unsigned long pfn,
+			      unsigned long size, pgprot_t vma_prot)
+{
+	if (!pfn_valid(pfn)) {
+		return pgprot_noncached(vma_prot);
+	} else if (file->f_flags & O_SYNC) {
+		return pgprot_writecombine(vma_prot);
+	}
+
+	return vma_prot;
+}
+EXPORT_SYMBOL(phys_mem_access_prot);

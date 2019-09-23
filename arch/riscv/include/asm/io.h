@@ -15,16 +15,13 @@
 #include <asm/mmiowb.h>
 #include <asm/pgtable.h>
 
-extern void __iomem *ioremap(phys_addr_t offset, unsigned long size);
+extern void __iomem *ioremap_cache(phys_addr_t addr, size_t size);
+extern void __iomem *__ioremap(phys_addr_t addr, size_t size, pgprot_t prot);
 
-/*
- * The RISC-V ISA doesn't yet specify how to query or modify PMAs, so we can't
- * change the properties of memory regions.  This should be fixed by the
- * upcoming platform spec.
- */
-#define ioremap_nocache(addr, size) ioremap((addr), (size))
-#define ioremap_wc(addr, size) ioremap((addr), (size))
-#define ioremap_wt(addr, size) ioremap((addr), (size))
+#define ioremap(addr, size)		__ioremap((addr), (size), pgprot_noncached(PAGE_KERNEL))
+#define ioremap_wc(addr, size)		__ioremap((addr), (size), pgprot_writecombine(PAGE_KERNEL))
+#define ioremap_nocache(addr, size)	ioremap((addr), (size))
+#define ioremap_cache			ioremap_cache
 
 extern void iounmap(volatile void __iomem *addr);
 
