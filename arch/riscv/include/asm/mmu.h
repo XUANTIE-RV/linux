@@ -11,6 +11,7 @@
 
 typedef struct {
 	void *vdso;
+	atomic64_t asid;
 #ifdef CONFIG_SMP
 	/* A local icache flush is needed before user execution can resume. */
 	cpumask_t icache_stale_mask;
