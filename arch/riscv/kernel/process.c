@@ -74,6 +74,12 @@ void start_thread(struct pt_regs *regs, unsigned long pc,
 		 */
 		fstate_restore(current, regs);
 	}
+
+	if (has_vector) {
+		regs->sstatus |= SR_VS_INITIAL;
+		vstate_restore(current, regs);
+	}
+
 	regs->sepc = pc;
 	regs->sp = sp;
 	set_fs(USER_DS);

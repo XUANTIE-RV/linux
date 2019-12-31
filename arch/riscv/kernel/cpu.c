@@ -48,7 +48,7 @@ int riscv_of_processor_hartid(struct device_node *node)
 
 static void print_isa(struct seq_file *f, const char *orig_isa)
 {
-	static const char *ext = "mafdcsu";
+	static const char *ext = "mafdcvsu";
 	const char *isa = orig_isa;
 	const char *e;
 

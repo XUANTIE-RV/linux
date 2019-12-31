@@ -60,7 +60,7 @@ _start_kernel:
 	 * Disable FPU to detect illegal usage of
 	 * floating point in kernel space
 	 */
-	li t0, SR_FS
+	li t0, SR_FS | SR_VS
 	csrc CSR_SSTATUS, t0
 
 #ifdef CONFIG_SMP
