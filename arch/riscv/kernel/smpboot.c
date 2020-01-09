@@ -102,6 +102,7 @@ int __cpu_up(unsigned int cpu, struct task_struct *tidle)
 	int hartid = cpuid_to_hartid_map(cpu);
 	tidle->thread_info.cpu = cpu;
 
+	SBI_CALL_1(0x09000003, hartid);
 	/*
 	 * On RISC-V systems, all harts boot on their own accord.  Our _start
 	 * selects the first hart to boot the kernel and causes the remainder
