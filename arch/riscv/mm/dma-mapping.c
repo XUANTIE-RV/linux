@@ -60,3 +60,11 @@ void arch_sync_dma_for_cpu(struct device *dev, phys_addr_t paddr,
 		BUG();
 	}
 }
+
+pgprot_t arch_dma_mmap_pgprot(struct device *dev, pgprot_t prot,
+		unsigned long attrs)
+{
+	if (attrs & DMA_ATTR_WRITE_COMBINE)
+		return pgprot_writecombine(prot);
+	return pgprot_noncached(prot);
+}
