@@ -71,6 +71,14 @@ config ARM_DSU_PMU
 	  system, control logic. The PMU allows counting various events related
 	  to DSU.
 
+config THEAD_XT_V1_PMU
+	bool "T-HEAD XuanTie v1 Performance Monitoring Unit"
+	depends on RISCV
+	def_bool y
+	help
+	  T-HEAD XuanTie PMU support various hardware event, including cycles,
+	  instructions, cache access/miss, LSU event and etc.
+
 config FSL_IMX8_DDR_PMU
 	tristate "Freescale i.MX8 DDR perf monitor"
 	depends on ARCH_MXC

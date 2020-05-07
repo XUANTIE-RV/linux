@@ -59,6 +59,7 @@
 #define IRQ_U_EXT		8
 #define IRQ_S_EXT		9
 #define IRQ_M_EXT		11
+#define IRQ_S_PMU		17
 
 #define EXC_INST_MISALIGNED	0
 #define EXC_INST_ACCESS		1
@@ -74,6 +75,7 @@
 #define SIE_SSIE		(_AC(0x1, UL) << IRQ_S_SOFT)
 #define SIE_STIE		(_AC(0x1, UL) << IRQ_S_TIMER)
 #define SIE_SEIE		(_AC(0x1, UL) << IRQ_S_EXT)
+#define SIE_SMIE		(_AC(0x1, UL) << IRQ_S_PMU)
 
 #define CSR_CYCLE		0xc00
 #define CSR_TIME		0xc01

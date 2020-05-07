@@ -18,8 +18,8 @@
  * The RISCV_MAX_COUNTERS parameter should be specified.
  */
 
-#ifdef CONFIG_RISCV_BASE_PMU
-#define RISCV_MAX_COUNTERS	2
+#if defined(CONFIG_RISCV_BASE_PMU) || defined(CONFIG_THEAD_XT_V1_PMU)
+#define RISCV_MAX_COUNTERS	32
 #endif
 
 #ifndef RISCV_MAX_COUNTERS

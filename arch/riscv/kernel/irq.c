@@ -17,6 +17,7 @@
 #define INTERRUPT_CAUSE_SOFTWARE	IRQ_S_SOFT
 #define INTERRUPT_CAUSE_TIMER		IRQ_S_TIMER
 #define INTERRUPT_CAUSE_EXTERNAL	IRQ_S_EXT
+#define INTERRUPT_CAUSE_PMU		IRQ_S_PMU
 
 int arch_show_interrupts(struct seq_file *p, int prec)
 {
@@ -24,6 +25,7 @@ int arch_show_interrupts(struct seq_file *p, int prec)
 	return 0;
 }
 
+extern int riscv_pmu_handle_irq(void);
 asmlinkage __visible void __irq_entry do_IRQ(struct pt_regs *regs)
 {
 	struct pt_regs *old_regs = set_irq_regs(regs);
@@ -33,6 +35,11 @@ asmlinkage __visible void __irq_entry do_IRQ(struct pt_regs *regs)
 	case INTERRUPT_CAUSE_TIMER:
 		riscv_timer_interrupt();
 		break;
+#ifdef CONFIG_THEAD_XT_V1_PMU
+	case INTERRUPT_CAUSE_PMU:
+		riscv_pmu_handle_irq();
+		break;
+#endif
 #ifdef CONFIG_SMP
 	case INTERRUPT_CAUSE_SOFTWARE:
 		/*
