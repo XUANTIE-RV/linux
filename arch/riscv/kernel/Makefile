@@ -42,4 +42,8 @@ obj-$(CONFIG_PERF_EVENTS)	+= perf_event.o
 obj-$(CONFIG_PERF_EVENTS)	+= perf_callchain.o
 obj-$(CONFIG_HAVE_PERF_REGS)	+= perf_regs.o
 
+obj-$(CONFIG_KEXEC_CORE)        += machine_kexec.o relocate_kernel.o    \
+						cpu-reset.o
+obj-$(CONFIG_CRASH_DUMP)        += crash_dump.o
+
 clean:
