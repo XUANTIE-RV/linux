@@ -12,6 +12,7 @@
 #define _ASM_RISCV_IO_H
 
 #include <linux/types.h>
+#include <asm/fence.h>
 #include <asm/mmiowb.h>
 #include <asm/pgtable.h>
 
@@ -29,26 +30,34 @@ extern void iounmap(volatile void __iomem *addr);
 #define __raw_writeb __raw_writeb
 static inline void __raw_writeb(u8 val, volatile void __iomem *addr)
 {
+	sync_mmu_v1();
 	asm volatile("sb %0, 0(%1)" : : "r" (val), "r" (addr));
+	sync_mmu_v1();
 }
 
 #define __raw_writew __raw_writew
 static inline void __raw_writew(u16 val, volatile void __iomem *addr)
 {
+	sync_mmu_v1();
 	asm volatile("sh %0, 0(%1)" : : "r" (val), "r" (addr));
+	sync_mmu_v1();
 }
 
 #define __raw_writel __raw_writel
 static inline void __raw_writel(u32 val, volatile void __iomem *addr)
 {
+	sync_mmu_v1();
 	asm volatile("sw %0, 0(%1)" : : "r" (val), "r" (addr));
+	sync_mmu_v1();
 }
 
 #ifdef CONFIG_64BIT
 #define __raw_writeq __raw_writeq
 static inline void __raw_writeq(u64 val, volatile void __iomem *addr)
 {
+	sync_mmu_v1();
 	asm volatile("sd %0, 0(%1)" : : "r" (val), "r" (addr));
+	sync_mmu_v1();
 }
 #endif
 
@@ -57,7 +66,9 @@ static inline u8 __raw_readb(const volatile void __iomem *addr)
 {
 	u8 val;
 
+	sync_mmu_v1();
 	asm volatile("lb %0, 0(%1)" : "=r" (val) : "r" (addr));
+	sync_mmu_v1();
 	return val;
 }
 
@@ -66,7 +77,9 @@ static inline u16 __raw_readw(const volatile void __iomem *addr)
 {
 	u16 val;
 
+	sync_mmu_v1();
 	asm volatile("lh %0, 0(%1)" : "=r" (val) : "r" (addr));
+	sync_mmu_v1();
 	return val;
 }
 
@@ -75,7 +88,9 @@ static inline u32 __raw_readl(const volatile void __iomem *addr)
 {
 	u32 val;
 
+	sync_mmu_v1();
 	asm volatile("lw %0, 0(%1)" : "=r" (val) : "r" (addr));
+	sync_mmu_v1();
 	return val;
 }
 
@@ -85,7 +100,9 @@ static inline u64 __raw_readq(const volatile void __iomem *addr)
 {
 	u64 val;
 
+	sync_mmu_v1();
 	asm volatile("ld %0, 0(%1)" : "=r" (val) : "r" (addr));
+	sync_mmu_v1();
 	return val;
 }
 #endif

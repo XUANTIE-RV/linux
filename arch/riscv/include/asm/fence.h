@@ -9,4 +9,8 @@
 #define RISCV_RELEASE_BARRIER
 #endif
 
+extern int c910_mmu_v1_flag;
+#define sync_mmu_v1() \
+	if (c910_mmu_v1_flag) asm volatile (".long 0x01b0000b");
+
 #endif	/* _ASM_RISCV_FENCE_H */

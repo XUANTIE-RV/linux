@@ -8,6 +8,7 @@
 #include <asm/tlbflush.h>
 #include <asm/cacheflush.h>
 #include <asm/mmu_context.h>
+#include <asm/fence.h>
 
 /*
  * When necessary, performs a deferred icache flush for the given MM context,
@@ -45,6 +46,7 @@ void switch_mm(struct mm_struct *prev, struct mm_struct *next,
 {
 	unsigned int cpu;
 	unsigned long asid;
+	unsigned long x;
 
 	if (unlikely(prev == next))
 		return;
@@ -63,7 +65,11 @@ void switch_mm(struct mm_struct *prev, struct mm_struct *next,
 	asid = (next->context.asid.counter & SATP_ASID_MASK)
 		<< SATP_ASID_SHIFT;
 
-	csr_write(sptbr, virt_to_pfn(next->pgd) | SATP_MODE | asid);
+	x = virt_to_pfn(next->pgd) | SATP_MODE | asid;
+	sync_mmu_v1();
+	sync_mmu_v1();
+	sync_mmu_v1();
+	csr_write(sptbr, x);
 
 	flush_icache_deferred(next);
 }

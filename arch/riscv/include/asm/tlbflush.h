@@ -12,12 +12,18 @@
 
 static inline void local_flush_tlb_all(void)
 {
+	sync_mmu_v1();
+	sync_mmu_v1();
+	sync_mmu_v1();
 	__asm__ __volatile__ ("sfence.vma" : : : "memory");
 }
 
 /* Flush one page from local TLB */
 static inline void local_flush_tlb_page(unsigned long addr)
 {
+	sync_mmu_v1();
+	sync_mmu_v1();
+	sync_mmu_v1();
 	__asm__ __volatile__ ("sfence.vma %0" : : "r" (addr) : "memory");
 }
 
@@ -49,6 +55,9 @@ static inline void flush_tlb_kernel_range(unsigned long start,
 	end   &= PAGE_MASK;
 
 	while (start < end) {
+		sync_mmu_v1();
+		sync_mmu_v1();
+		sync_mmu_v1();
 		__asm__ __volatile__ ("sfence.vma %0" : : "r" (start) : "memory");
 		start += PAGE_SIZE;
 	}

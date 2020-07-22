@@ -7,23 +7,39 @@
 #ifdef  XUANTIE
 #include <asm/mmu_context.h>
 
+int c910_mmu_v1_flag = 0;
+
 void flush_tlb_all(void)
 {
+if (c910_mmu_v1_flag) {
+	sync_mmu_v1();
+	sync_mmu_v1();
+	sync_mmu_v1();
+}
+
 	__asm__ __volatile__ ("sfence.vma" : : : "memory");
 }
 
 void flush_tlb_mm(struct mm_struct *mm)
 {
+if (c910_mmu_v1_flag) {
 	int newpid = cpu_asid(mm);
 
 	__asm__ __volatile__ ("sfence.vma zero, %0"
 				:
 				: "r"(newpid)
 				: "memory");
+} else {
+	sync_mmu_v1();
+	sync_mmu_v1();
+	sync_mmu_v1();
+	__asm__ __volatile__ ("sfence.vma" : : : "memory");
+}
 }
 
 void flush_tlb_page(struct vm_area_struct *vma, unsigned long addr)
 {
+if (c910_mmu_v1_flag) {
 	int newpid = cpu_asid(vma->vm_mm);
 
 	addr &= PAGE_MASK;
@@ -32,6 +48,18 @@ void flush_tlb_page(struct vm_area_struct *vma, unsigned long addr)
 				:
 				: "r"(addr), "r"(newpid)
 				: "memory");
+
+} else {
+	addr &= PAGE_MASK;
+
+	sync_mmu_v1();
+	sync_mmu_v1();
+	sync_mmu_v1();
+	__asm__ __volatile__ ("sfence.vma %0"
+				:
+				: "r"(addr)
+				: "memory");
+}
 }
 
 void flush_tlb_range(struct vm_area_struct *vma, unsigned long start,
@@ -43,6 +71,18 @@ void flush_tlb_range(struct vm_area_struct *vma, unsigned long start,
 	end   += PAGE_SIZE - 1;
 	end   &= PAGE_MASK;
 
+if (c910_mmu_v1_flag) {
+	while (start < end) {
+		sync_mmu_v1();
+		sync_mmu_v1();
+		sync_mmu_v1();
+		__asm__ __volatile__ ("sfence.vma %0"
+					:
+					: "r"(start)
+					: "memory");
+		start += PAGE_SIZE;
+	}
+} else {
 	while (start < end) {
 		__asm__ __volatile__ ("sfence.vma %0, %1"
 					:
@@ -51,6 +91,15 @@ void flush_tlb_range(struct vm_area_struct *vma, unsigned long start,
 		start += PAGE_SIZE;
 	}
 }
+}
+
+static int __init c910_mmu_v1(char *str)
+{
+	c910_mmu_v1_flag = 1;
+	return 0;
+}
+early_param("c910_mmu_v1", c910_mmu_v1);
+
 #else
 #include <asm/sbi.h>
 
