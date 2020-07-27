@@ -1,4 +1,4 @@
-BRANCH=android11-5.4
+BRANCH=android-5.4-stable
 KMI_GENERATION=0
 KERNEL_DIR=common
 
@@ -7,8 +7,10 @@ LD=ld.lld
 NM=llvm-nm
 OBJCOPY=llvm-objcopy
 DEPMOD=depmod
-CLANG_PREBUILT_BIN=prebuilts-master/clang/host/linux-x86/clang-r383902/bin
+CLANG_PREBUILT_BIN=prebuilts-master/clang/host/linux-x86/clang-dev/bin
 BUILDTOOLS_PREBUILT_BIN=build/build-tools/path/linux-x86
+CROSS_COMPILE_LD=ld
+CROSS_COMPILE_OBJCOPY=objcopy
 
 EXTRA_CMDS=''
 STOP_SHIP_TRACEPRINTK=1

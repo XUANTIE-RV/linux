@@ -197,7 +197,8 @@ static void __init initialize_lsm(struct lsm_info *lsm)
 	if (is_enabled(lsm)) {
 		int ret;
 
-		init_debug("initializing %s\n", lsm->name);
+		//init_debug("initializing %s\n", lsm->name);
+		pr_info("initializing %s\n", lsm->name);
 		ret = lsm->init();
 		WARN(ret, "%s failed to initialize: %d\n", lsm->name, ret);
 	}
@@ -230,7 +231,7 @@ static void __init ordered_lsm_parse(const char *order, const char *origin)
 			if ((major->flags & LSM_FLAG_LEGACY_MAJOR) &&
 			    strcmp(major->name, chosen_major_lsm) != 0) {
 				set_enabled(major, false);
-				init_debug("security=%s disabled: %s\n",
+				pr_info("security=%s disabled: %s\n",
 					   chosen_major_lsm, major->name);
 			}
 		}

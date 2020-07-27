@@ -1,0 +1,10 @@
+. ${ROOT_DIR}/common/build.config.common
+. ${ROOT_DIR}/common/build.config.riscv64
+. ${ROOT_DIR}/common/build.config.gki
+
+DEFCONFIG=riscv64_defconfig
+DEFCONFIG_PATH="${ROOT_DIR}/common/arch/riscv/configs"
+#PRE_DEFCONFIG_CMDS="KCONFIG_CONFIG=${DEFCONFIG_PATH}/${DEFCONFIG} ${ROOT_DIR}/common/scripts/kconfig/merge_config.sh -m -r ${DEFCONFIG_PATH}/gki_defconfig ${FRAGMENT_DEFCONFIG_PATH}"
+PRE_DEFCONFIG_CMDS="KCONFIG_CONFIG=${DEFCONFIG_PATH}/${DEFCONFIG} ${ROOT_DIR}/common/scripts/kconfig/merge_config.sh -m -r ${ROOT_DIR}/kernel/configs/android-5.4/android-base-riscv64.config ${DEFCONFIG_PATH}/gki_defconfig"
+POST_DEFCONFIG_CMDS="rm ${DEFCONFIG_PATH}/${DEFCONFIG}"
+#/home/maoh/android-kernel/kernel/configs/android-5.4

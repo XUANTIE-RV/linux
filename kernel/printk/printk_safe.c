@@ -2,7 +2,7 @@
 /*
  * printk_safe.c - Safe printk for printk-deadlock-prone contexts
  */
-
+#pragma GCC optimize ("O0")
 #include <linux/preempt.h>
 #include <linux/spinlock.h>
 #include <linux/debug_locks.h>

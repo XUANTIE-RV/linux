@@ -1,0 +1,11 @@
+ARCH=riscv
+
+CLANG_TRIPLE=riscv64
+CROSS_COMPILE=riscv64-unknown-linux-gnu-
+LINUX_GCC_CROSS_COMPILE_PREBUILTS_BIN=prebuilts/gcc/linux-x86/riscv64/riscv64-unknown-linux-gnu/bin
+
+FILES="
+arch/riscv/boot/Image
+vmlinux
+System.map
+"
