@@ -38,7 +38,7 @@ struct screen_info screen_info = {
 #endif
 
 /* The lucky hart to first increment this variable will boot the other cores */
-atomic_t hart_lottery;
+__section(.data) atomic_t hart_lottery;
 unsigned long boot_cpu_hartid;
 
 void __init parse_dtb(void)
