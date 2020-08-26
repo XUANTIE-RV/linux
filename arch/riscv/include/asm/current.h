@@ -26,11 +26,8 @@ struct task_struct;
  */
 static __always_inline struct task_struct *get_current(void)
 {
-	unsigned long tp;
-
-	asm ("mv %0, tp" : "=r" (tp));
-
-	return (struct task_struct *)tp;
+	register struct task_struct *tp __asm__("tp");
+	return tp;
 }
 
 #define current get_current()
