@@ -8,6 +8,7 @@
 #include <asm/mmu_context.h>
 
 int c910_mmu_v1_flag = 0;
+EXPORT_SYMBOL(c910_mmu_v1_flag);
 
 void flush_tlb_all(void)
 {
