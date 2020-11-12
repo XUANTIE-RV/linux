@@ -180,7 +180,7 @@ clean := -f $(srctree)/scripts/Makefile.clean obj
 # echo command.
 # Short version is used, if $(quiet) equals `quiet_', otherwise full one.
 echo-cmd = $(if $($(quiet)cmd_$(1)),\
-	echo '  $(call escsq,$($(quiet)cmd_$(1)))$(echo-why)';)
+	echo '  $(call escsq,$(cmd_$(1)))$(echo-why)';)
 
 # printing commands
 cmd = @set -e; $(echo-cmd) $(cmd_$(1))

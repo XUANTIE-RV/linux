@@ -224,7 +224,7 @@ quiet_cmd_ar = AR      $@
 # ---------------------------------------------------------------------------
 
 quiet_cmd_objcopy = OBJCOPY $@
-cmd_objcopy = $(OBJCOPY) $(OBJCOPYFLAGS) $(OBJCOPYFLAGS_$(@F)) $< $@
+cmd_objcopy = $(CROSS_COMPILE)$(CROSS_COMPILE_OBJCOPY) $(OBJCOPYFLAGS) $(OBJCOPYFLAGS_$(@F)) $< $@
 
 # Gzip
 # ---------------------------------------------------------------------------
