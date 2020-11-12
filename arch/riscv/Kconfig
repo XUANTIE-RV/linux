@@ -359,6 +359,12 @@ endchoice
 
 endmenu
 
+config FORCE_MAX_ZONEORDER
+	int "Maximum zone order"
+	default "14"
+	help
+	 set the memory size
+
 menu "Power management options"
 
 source "kernel/power/Kconfig"
