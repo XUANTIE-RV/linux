@@ -140,7 +140,7 @@ vmlinux_link()
 				${@}"
 		fi
 
-		${CROSS_COMPILE}${CROSS_COMPILE_LD} ${KBUILD_LDFLAGS} ${LDFLAGS_vmlinux}	\
+		${LD} ${KBUILD_LDFLAGS} ${LDFLAGS_vmlinux}	\
 			${strip_debug#-Wl,}			\
 			-o ${output}				\
 			-T ${lds} ${objects}

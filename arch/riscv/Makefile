@@ -47,9 +47,9 @@ riscv-march-aflags-$(CONFIG_VECTOR)			:= $(riscv-march-aflags-y)v
 riscv-march-aflags-$(CONFIG_RISCV_ISA_THEAD)	:= $(riscv-march-aflags-y)xthead
 
 KBUILD_CFLAGS += -march=$(riscv-march-cflags-y) -Wa,-march=$(riscv-march-aflags-y)
-KBUILD_AFLAGS += -march=$(riscv-march-aflags-y) -Wa,-mno-relax -g
+KBUILD_AFLAGS += -march=$(riscv-march-aflags-y)
 
-KBUILD_CFLAGS += -mno-save-restore -mno-relax -Wa,-mno-relax -g
+KBUILD_CFLAGS += -mno-save-restore
 KBUILD_CFLAGS += -DCONFIG_PAGE_OFFSET=$(CONFIG_PAGE_OFFSET)
 
 ifeq ($(CONFIG_CMODEL_MEDLOW),y)
