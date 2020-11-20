@@ -1,0 +1,8 @@
+
+config I2C_DH_DW201A
+	bool "I2C of DH-DW201A driver"
+	depends on OF
+	default n
+	help
+	  Say Y if want support for the DH-DW201A i2c driver.
+
