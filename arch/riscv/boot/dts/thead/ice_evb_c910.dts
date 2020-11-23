@@ -293,6 +293,17 @@
 				pagesize = <32>;
 			};
 
+			goodix_ts@14 {
+				#gpio-cells = <2>;
+				compatible = "goodix,gt917s";
+				reg = <0x14>;
+				interrupt-parent = <&gpio0_porta>;
+				interrupts = <31 0>;
+				irq-gpios = <&gpio0_porta 31 0>;
+				reset-gpios = <&gpio0_porta 30 0>;
+				touchscreen-size-x = <720>;
+				touchscreen-size-y = <1440>;
+			};
 		};
 
 		pmu: pmu {
