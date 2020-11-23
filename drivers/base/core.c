@@ -2884,11 +2884,13 @@ int device_add(struct device *dev)
 	 * waiting consumers can link to it before the driver is bound to the
 	 * device and the driver sync_state callback is called for this device.
 	 */
+
+	#if 0 // mj-debug: don't do defer probe here for now. let's fix later
 	if (dev->fwnode && !dev->fwnode->dev) {
 		dev->fwnode->dev = dev;
 		fw_devlink_link_device(dev);
 	}
-
+	#endif
 	bus_probe_device(dev);
 	if (parent)
 		klist_add_tail(&dev->p->knode_parent,
