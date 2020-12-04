@@ -136,6 +136,19 @@
 			#clock-cells = <0>;
 		};
 
+		usb: dwc3@3fff10000 {
+			compatible = "snps,dwc3";
+			reg = <0x3 0xfff10000 0x0 0x10000>;
+			interrupt-parent = <&intc>;
+			interrupts = <44>;
+			clocks = <&dummy_clk_ahb>, <&dummy_clk_ahb>, <&dummy_clk_ahb>;
+			clock-names = "ref", "bus_early", "suspend";
+			maximum-speed = "super-speed";
+			dr_mode = "peripheral";
+			snps,usb3_lpm_capable;
+			snps,dis_u3_susphy_quirk;
+		};
+
 		gpio0: gpio@3fff71000 {
 			compatible = "snps,dw-apb-gpio";
 			reg = <0x3 0xfff71000 0x0 0x1000>;
@@ -219,20 +232,6 @@
 				linux,code = <59>;
 				label = "key_0";
 			};
-		};
-
-		dwc3@0x3fff10000 {
-		//	compatible = "synopsys,dwc3";
-			compatible = "snps,dwc3";
-			reg = <0x3 0xfff10000 0x0 0x10000>;
-			maximum-speed = "super-speed";
-			dr_mode = "peripheral";
-			interrupt-parent = <&intc>;
-			interrupts = <44>;
-			clocks = <&dummy_clk_ahb>, <&dummy_clk_ahb>, <&dummy_clk_ahb>;
-			clock-names = "ref", "buf_early", "suspend";
-			snps,usb3_lpm_capable;
-			isnps,dis_u3_susphy_quirk;
 		};
 
 		serial0@3fff73000 {
