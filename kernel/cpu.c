@@ -371,6 +371,7 @@ void cpu_hotplug_enable(void)
 EXPORT_SYMBOL_GPL(cpu_hotplug_enable);
 
 #else
+static void __cpu_hotplug_enable(void) { return; }
 
 static void lockdep_acquire_cpus_lock(void)
 {
@@ -1075,6 +1076,11 @@ EXPORT_SYMBOL(cpu_down);
 
 #else
 #define takedown_cpu		NULL
+static int __ref _cpu_down(unsigned int cpu, int tasks_frozen,
+                          enum cpuhp_state target)
+{
+       return 0;
+}
 #endif /*CONFIG_HOTPLUG_CPU*/
 
 /**
