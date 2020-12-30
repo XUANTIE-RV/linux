@@ -301,7 +301,7 @@
 				irq-gpios = <&gpio0_porta 31 0>;
 				reset-gpios = <&gpio0_porta 30 0>;
 				touchscreen-size-x = <720>;
-				touchscreen-size-y = <1440>;
+				touchscreen-size-y = <1280>;
 			};
 		};
 
