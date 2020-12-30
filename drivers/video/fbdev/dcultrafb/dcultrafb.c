@@ -21,6 +21,8 @@
 #include "dcfb.h"
 
 #define DEBUG 0
+#define DEFAULT_DC_ROT_ANGLE	DC_ROT_ANGLE_ROT180
+
 
 #define DEFAULT_WIDTH           720
 #define DEFAULT_HEIGHT          1280
@@ -576,7 +578,7 @@ static int ultrafb_pan_display(struct fb_var_screeninfo *var, struct fb_info *in
 
 	fbi->gamma_table.gamma_enable = 0;
 	fbi->colorkey.enable = 0;
-	fbi->rotangle = DC_ROT_ANGLE_ROT0;
+    fbi->rotangle = DEFAULT_DC_ROT_ANGLE;
 	fbi->framebuffersize.width = DEFAULT_WIDTH;
 	fbi->framebuffersize.height = DEFAULT_HEIGHT;
 	fbi->framebuffersize.stride = DEFAULT_WIDTH * pixel_byte;
@@ -1111,7 +1113,7 @@ static int overlay_pan_display(struct fb_var_screeninfo *var, struct fb_info *in
 	}
 
 	fbi->colorkey.enable = 0;
-	fbi->rotangle = DC_ROT_ANGLE_ROT0;
+    fbi->rotangle = DEFAULT_DC_ROT_ANGLE;
 	fbi->mode = DC_BLEND_MODE_SRC;
 	fbi->overlayrect.tlx = 0;
 	fbi->overlayrect.tly = 0;
