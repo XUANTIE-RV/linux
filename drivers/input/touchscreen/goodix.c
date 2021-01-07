@@ -1313,6 +1313,8 @@ static int __maybe_unused goodix_suspend(struct device *dev)
 	struct goodix_ts_data *ts = i2c_get_clientdata(client);
 	int error;
 
+	pr_info("mjdbg: %s\n", __func__);
+    return -1;
 	if (ts->load_cfg_from_disk)
 		wait_for_completion(&ts->firmware_loading_complete);
 
@@ -1359,6 +1361,7 @@ static int __maybe_unused goodix_resume(struct device *dev)
 	u8 config_ver;
 	int error;
 
+	pr_info("mjdbg: %s\n", __func__);
 	if (ts->irq_pin_access_method == IRQ_PIN_ACCESS_NONE) {
 		enable_irq(client->irq);
 		return 0;
