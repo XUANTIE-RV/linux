@@ -37,7 +37,7 @@
 		cpu@1 {
 			device_type = "cpu";
 			reg = <1>;
-			status = "fail";
+			status = "okay";
 			compatible = "riscv";
 			riscv,isa = "rv64imafdcsu";
 			mmu-type = "riscv,sv39";
@@ -426,7 +426,7 @@
 	};
 
 	chosen {
-		bootargs = "console=ttyS0,115200 crashkernel=256M-:128M c910_mmu_v1 earlycon=sbi rdinit=/init security=selinux androidboot.selinux=permissive printk.devkmsg=on androidboot.hardware=ranchu androidboot.super_partition= ";
+		bootargs = "no_console_suspend console=ttyS0,115200 crashkernel=256M-:128M c910_mmu_v1 earlycon=sbi rdinit=/init security=selinux androidboot.selinux=permissive printk.devkmsg=on androidboot.hardware=ranchu androidboot.super_partition= ";
 		linux,initrd-start = <0x2000000>;
 		linux,initrd-end = <0x17000000>;
 		stdout-path = "serial0@3fff73000:115200";
