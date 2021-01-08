@@ -14,7 +14,7 @@
 		 * 0x40000000 - 0x60000000:  512MB for NPU: IAS0
 		 * 0x60000000 - 0x80000000:  512MB for GPU
 		 */
-		reg = <0x0 0x200000 0x0 0x3fe00000>;
+		reg = <0x0 0x200000 0x0 0xdfe00000>;
 	};
 
 	cpus {
@@ -412,8 +412,8 @@
 			reg = <0x3 0xfff27000 0x0 0x1000>;
 			interrupt-parent = <&intc>;
 			interrupts = <63>;
-			contiguous-base = <0x0 0x60000000>;
-			contiguous-size = <0x0 0x10000000>;
+			contiguous-base = <0x0 0xe0000000>;
+			contiguous-size = <0x0 0x20000000>;
 		};
 
 		dpu: dpu@3fff28000 {
