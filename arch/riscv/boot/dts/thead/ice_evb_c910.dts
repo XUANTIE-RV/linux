@@ -149,6 +149,13 @@
 			snps,dis_u3_susphy_quirk;
 		};
 
+        watchdog: watchdog@3fffe3000 {
+			compatible = "ice,ice-wdt";
+			reg = <0x3 0xfffe3000 0x0 0x1000>;
+			interrupt-parent = <&intc>;
+			interrupts = <20>;
+		};
+
 		gpio0: gpio@3fff71000 {
 			compatible = "snps,dw-apb-gpio";
 			reg = <0x3 0xfff71000 0x0 0x1000>;
