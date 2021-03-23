@@ -128,6 +128,10 @@ static void xas_squash_marks(const struct xa_state *xas)
 
 	if (!xas->xa_sibs)
 		return;
+    if (!xas->xa_node) {
+        pr_info("mjdbg: this is not right>>>>>>>>>>>>\n");
+        return;
+    }
 
 	do {
 		unsigned long *marks = xas->xa_node->marks[mark];
