@@ -240,7 +240,7 @@
 
             key_S1 { /* GPIO[10] */
 				gpios = <&gpio1_porta 10 1>;
-				linux,code = <59>;
+				linux,code = <152>;
 				label = "key_S1";
 				gpio-key,wakeup;
 				debounce-interval = <15>;
@@ -248,7 +248,7 @@
 
 			key_S2 { /* GPIO[11] */
 				gpios = <&gpio1_porta 11 1>;
-				linux,code = <28>;
+				linux,code = <172>;
 				label = "key_S2";
 				gpio-key,wakeup;
 				debounce-interval = <15>;
