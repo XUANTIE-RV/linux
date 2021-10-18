@@ -1,3 +1,5 @@
+Please follow buildroot tips to startup T-HEAD C9xx CPU's boards: [T-HEAD buildroot](https://github.com/T-head-Semi/buildroot)
+
 # How do I submit patches to Android Common Kernels
 
 1. BEST: Make all of your changes to upstream Linux. If appropriate, backport to the stable releases.
