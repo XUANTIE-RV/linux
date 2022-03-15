@@ -11,6 +11,7 @@ config HAS_DMA
 config DMA_OPS
 	depends on HAS_DMA
 	bool
+	default y
 
 #
 # IOMMU drivers that can bypass the IOMMU code and optionally use the direct

@@ -10,6 +10,7 @@ config IOASID
 # IOMMU_API always gets selected by whoever wants it.
 config IOMMU_API
 	bool
+	default y
 
 menuconfig IOMMU_SUPPORT
 	bool "IOMMU Hardware Support"
@@ -102,6 +103,7 @@ config IOMMU_DMA
 	select IOMMU_IOVA
 	select IRQ_MSI_IOMMU
 	select NEED_SG_DMA_LENGTH
+	default y
 
 config FSL_PAMU
 	bool "Freescale IOMMU support"
