@@ -265,11 +265,11 @@
 			};
 		};
 
-		serial@3fff73000 {
+		serial@3fff73400 {
 			compatible = "snps,dw-apb-uart";
-			reg = <0x3 0xfff73000 0x0 0x400>;
+			reg = <0x3 0xfff73400 0x0 0x400>;
 			interrupt-parent = <&intc>;
-			interrupts = <23>;
+			interrupts = <24>;
 			clocks = <&dummy_apb>;
 			clock-names = "baudclk";
 			reg-shift = <2>;
@@ -394,6 +394,6 @@
 		/* linux,initrd-start = <0x2000000>; */
 		/* linux,initrd-end = <0x17000000>; */
 		bootargs = "console=ttyS0,115200 rdinit=/sbin/init root=/dev/mmcblk0p4 rw rootfstype=ext4 blkdevparts=mmcblk0:2M(table),2M(dtb),60M(kernel),-(rootfs) clk_ignore_unused loglevel=7 rootwait crashkernel=256M-:128M c910_mmu_v1";
-		stdout-path = "serial0@3fff73000:115200";
+		stdout-path = "serial0@3fff73400:115200";
 	};
 };
