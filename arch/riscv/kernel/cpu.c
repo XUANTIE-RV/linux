@@ -230,9 +230,9 @@ static void print_mmu(struct seq_file *f)
 	const char *sv_type;
 
 #ifdef CONFIG_MMU
-#if defined(CONFIG_32BIT)
+#if defined(CONFIG_MMU_SV32)
 	sv_type = "sv32";
-#elif defined(CONFIG_64BIT)
+#else
 	if (pgtable_l5_enabled)
 		sv_type = "sv57";
 	else if (pgtable_l4_enabled)

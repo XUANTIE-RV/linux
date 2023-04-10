@@ -262,7 +262,7 @@ config FIX_EARLYCON_MEM
 
 config PGTABLE_LEVELS
 	int
-	default 5 if 64BIT
+	default 5 if !MMU_SV32
 	default 2
 
 config LOCKDEP_SUPPORT
@@ -338,6 +338,7 @@ config ARCH_RV32I
 	select GENERIC_LIB_ASHRDI3
 	select GENERIC_LIB_LSHRDI3
 	select GENERIC_LIB_UCMPDI2
+	select MMU_SV32
 
 config ARCH_RV64I
 	bool "RV64I"
@@ -655,6 +656,15 @@ config THREAD_SIZE_ORDER
 	help
 	  Specify the Pages of thread stack size (from 4KB to 64KB), which also
 	  affects irq stack size, which is equal to thread stack size.
+
+config MMU_SV32
+	bool "MMU Sv32"
+	depends on 32BIT && MMU
+	help
+	  ARCH_RV32I only supports MMU Sv32 mode, but ARCH_RV64ILP32 supports
+	  MMU Sv39 & Sv32 (MMU Sv32 is optional for RV64 hardware).
+
+	  If unsure, say N.
 
 endmenu # "Platform type"
 

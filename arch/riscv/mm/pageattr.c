@@ -14,10 +14,10 @@ struct pageattr_masks {
 	pgprot_t clear_mask;
 };
 
-static unsigned long set_pageattr_masks(unsigned long val, struct mm_walk *walk)
+static unsigned long set_pageattr_masks(ptval_t val, struct mm_walk *walk)
 {
 	struct pageattr_masks *masks = walk->private;
-	unsigned long new_val = val;
+	ptval_t new_val = val;
 
 	new_val &= ~(pgprot_val(masks->clear_mask));
 	new_val |= (pgprot_val(masks->set_mask));

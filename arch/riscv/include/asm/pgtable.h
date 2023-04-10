@@ -34,7 +34,11 @@
  * Half of the kernel address space (1/4 of the entries of the page global
  * directory) is for the direct mapping.
  */
-#define KERN_VIRT_SIZE          ((PTRS_PER_PGD / 2 * PGDIR_SIZE) / 2)
+#if IS_ENABLED(CONFIG_ARCH_RV64ILP32) && !IS_ENABLED(CONFIG_MMU_SV32)
+#define KERN_VIRT_SIZE          (ulong)(PTRS_PER_PGD * PMD_SIZE)
+#else
+#define KERN_VIRT_SIZE          (ulong)((PTRS_PER_PGD / 2 * PGDIR_SIZE) / 2)
+#endif
 
 #define VMALLOC_SIZE     (KERN_VIRT_SIZE >> 1)
 #define VMALLOC_END      PAGE_OFFSET
@@ -91,7 +95,7 @@
 #define PCI_IO_START     (PCI_IO_END - PCI_IO_SIZE)
 
 #define FIXADDR_TOP      PCI_IO_START
-#ifdef CONFIG_64BIT
+#ifndef CONFIG_MMU_SV32
 #define MAX_FDT_SIZE	 PMD_SIZE
 #define FIX_FDT_SIZE	 (MAX_FDT_SIZE + SZ_2M)
 #define FIXADDR_SIZE     (PMD_SIZE + FIX_FDT_SIZE)
@@ -120,7 +124,7 @@
 
 #define __page_val_to_pfn(_val)  (((_val) & _PAGE_PFN_MASK) >> _PAGE_PFN_SHIFT)
 
-#ifdef CONFIG_64BIT
+#ifndef CONFIG_MMU_SV32
 #include <asm/pgtable-64.h>
 
 #define VA_USER_SV39 (UL(1) << (VA_BITS_SV39 - 1))
@@ -139,7 +143,7 @@
 
 #else
 #include <asm/pgtable-32.h>
-#endif /* CONFIG_64BIT */
+#endif /* !CONFIG_MMU_SV32 */
 
 #include <linux/page_table_check.h>
 
@@ -258,7 +262,7 @@ static inline void pmd_clear(pmd_t *pmdp)
 
 static inline pgd_t pfn_pgd(unsigned long pfn, pgprot_t prot)
 {
-	unsigned long prot_val = pgprot_val(prot);
+	ptval_t prot_val = pgprot_val(prot);
 
 	ALT_THEAD_PMA(prot_val);
 
@@ -338,7 +342,7 @@ static inline unsigned long pte_pfn(pte_t pte)
 /* Constructs a page table entry */
 static inline pte_t pfn_pte(unsigned long pfn, pgprot_t prot)
 {
-	unsigned long prot_val = pgprot_val(prot);
+	ptval_t prot_val = pgprot_val(prot);
 
 	ALT_THEAD_PMA(prot_val);
 
@@ -456,7 +460,7 @@ static inline int pmd_protnone(pmd_t pmd)
 /* Modify page protection bits */
 static inline pte_t pte_modify(pte_t pte, pgprot_t newprot)
 {
-	unsigned long newprot_val = pgprot_val(newprot);
+	ptval_t newprot_val = pgprot_val(newprot);
 
 	ALT_THEAD_PMA(newprot_val);
 
@@ -561,7 +565,11 @@ static inline int ptep_set_access_flags(struct vm_area_struct *vma,
 static inline pte_t ptep_get_and_clear(struct mm_struct *mm,
 				       unsigned long address, pte_t *ptep)
 {
+#ifdef CONFIG_MMU_SV32
 	pte_t pte = __pte(atomic_long_xchg((atomic_long_t *)ptep, 0));
+#else
+	pte_t pte = __pte(atomic64_xchg((atomic64_t *)ptep, 0));
+#endif
 
 	page_table_check_pte_clear(mm, pte);
 
@@ -575,14 +583,19 @@ static inline int ptep_test_and_clear_young(struct vm_area_struct *vma,
 {
 	if (!pte_young(*ptep))
 		return 0;
-	return test_and_clear_bit(_PAGE_ACCESSED_OFFSET, &pte_val(*ptep));
+	return test_and_clear_bit(_PAGE_ACCESSED_OFFSET,
+					(unsigned long *)&pte_val(*ptep));
 }
 
 #define __HAVE_ARCH_PTEP_SET_WRPROTECT
 static inline void ptep_set_wrprotect(struct mm_struct *mm,
 				      unsigned long address, pte_t *ptep)
 {
+#ifdef CONFIG_MMU_SV32
 	atomic_long_and(~(unsigned long)_PAGE_WRITE, (atomic_long_t *)ptep);
+#else
+	atomic64_and(~(ptval_t)_PAGE_WRITE, (atomic64_t *)ptep);
+#endif
 }
 
 #define __HAVE_ARCH_PTEP_CLEAR_YOUNG_FLUSH
@@ -610,7 +623,7 @@ static inline int ptep_clear_flush_young(struct vm_area_struct *vma,
 #define pgprot_noncached pgprot_noncached
 static inline pgprot_t pgprot_noncached(pgprot_t _prot)
 {
-	unsigned long prot = pgprot_val(_prot);
+	ptval_t prot = pgprot_val(_prot);
 
 	prot &= ~_PAGE_MTMASK;
 	prot |= _PAGE_IO;
@@ -621,7 +634,7 @@ static inline pgprot_t pgprot_noncached(pgprot_t _prot)
 #define pgprot_writecombine pgprot_writecombine
 static inline pgprot_t pgprot_writecombine(pgprot_t _prot)
 {
-	unsigned long prot = pgprot_val(_prot);
+	ptval_t prot = pgprot_val(_prot);
 
 	prot &= ~_PAGE_MTMASK;
 	prot |= _PAGE_NOCACHE;
