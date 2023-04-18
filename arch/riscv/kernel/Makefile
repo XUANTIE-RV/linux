@@ -58,6 +58,8 @@ obj-y	+= cacheinfo.o
 obj-y	+= patch.o
 obj-y	+= probes/
 obj-$(CONFIG_MMU) += vdso.o vdso/
+obj-$(CONFIG_VDSO64)  += vdso64.o
+obj-$(CONFIG_VDSO32)  += vdso32.o
 
 obj-$(CONFIG_RISCV_M_MODE)	+= traps_misaligned.o
 obj-$(CONFIG_FPU)		+= fpu.o
@@ -97,7 +99,6 @@ obj-$(CONFIG_CFI_CLANG)		+= cfi.o
 obj-$(CONFIG_EFI)		+= efi.o
 obj-$(CONFIG_COMPAT)		+= compat_syscall_table.o
 obj-$(CONFIG_COMPAT)		+= compat_signal.o
-obj-$(CONFIG_COMPAT)		+= compat_vdso/
 
 obj-$(CONFIG_64BIT)		+= pi/
 obj-$(CONFIG_ACPI)		+= acpi.o
