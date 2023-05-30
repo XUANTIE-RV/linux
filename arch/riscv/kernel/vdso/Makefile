@@ -151,3 +151,65 @@ vdso64.so: $(obj)/vdso64.so.dbg
 
 vdso64_install: vdso64.so
 endif
+
+ifdef CONFIG_VDSO64ILP32
+vdso64ilp32-as-syms  = rt_sigreturn
+vdso64ilp32-as-syms += getcpu
+vdso64ilp32-as-syms += flush_icache
+vdso64ilp32-as-syms += sys_hwprobe
+
+vdso64ilp32-cc-syms += hwprobe
+
+VDSO64ILP32_CC_FLAGS := -march=rv64g -mabi=ilp32
+VDSO64ILP32_LD_FLAGS := -melf32lriscv
+
+obj-as-vdso64ilp32  = $(patsubst %, %-64ilp32.o, $(vdso64ilp32-as-syms)) note-64ilp32.o
+obj-as-vdso64ilp32 := $(addprefix $(obj)/, $(obj-as-vdso64ilp32))
+
+obj-cc-vdso64ilp32  = $(patsubst %, %-64ilp32.o, $(vdso64ilp32-cc-syms))
+obj-cc-vdso64ilp32 := $(addprefix $(obj)/, $(obj-cc-vdso64ilp32))
+
+targets += $(obj-as-vdso64ilp32) $(obj-cc-vdso64ilp32) vdso64ilp32.so vdso64ilp32.so.dbg vdso64ilp32.lds
+
+$(obj)/vdso64ilp32.so.dbg: $(obj)/vdso.lds $(obj-as-vdso64ilp32) $(obj-cc-vdso64ilp32) FORCE
+	$(call if_changed,vdso64ilp32ld)
+LDFLAGS_vdso64ilp32.so.dbg = -shared -S -soname=linux-vdso64ilp32.so.1 \
+	--build-id=sha1 --hash-style=both --eh-frame-hdr
+
+# The DSO images are built using a special linker script
+# Make sure only to export the intended __vdso_xxx symbol offsets.
+quiet_cmd_vdso64ilp32ld = VDSO64ILP32LD  $@
+      cmd_vdso64ilp32ld = $(VDSO_LD) $(ld_flags) $(VDSO64ILP32_LD_FLAGS) -T $(filter-out FORCE,$^) -o $@.tmp && \
+                   $(OBJCOPY) $(patsubst %, -G __vdso_%, $(vdso64-as-syms) $(vdso64ilp32-cc-syms)) $@.tmp $@ && \
+                   rm $@.tmp
+
+# actual build commands
+quiet_cmd_vdso64ilp32as = VDSO64ILP32AS $@
+      cmd_vdso64ilp32as = $(VDSO_CC) $(a_flags) $(VDSO64ILP32_CC_FLAGS) -c -o $@ $<
+quiet_cmd_vdso64ilp32cc = VDSO64ILP32CC $@
+      cmd_vdso64ilp32cc = $(VDSO_CC) $(c_flags) $(VDSO64ILP32_CC_FLAGS) -c -o $@ $<
+
+# Force dependency
+$(obj)/vdso64ilp32.o: $(obj)/vdso64ilp32.so
+
+$(obj-as-vdso64ilp32): %-64ilp32.o: %.S FORCE
+	$(call if_changed_dep,vdso64ilp32as)
+$(obj-cc-vdso64ilp32): %-64ilp32.o: %.c FORCE
+	$(call if_changed_dep,vdso64ilp32cc)
+
+CFLAGS_hwprobe-64ilp32.o += -fPIC
+
+# Generate VDSO offsets using helper script
+gen-vdso64ilp32sym := $(srctree)/$(src)/gen_vdso64ilp32_offsets.sh
+quiet_cmd_vdso64ilp32sym = VDSO64ILP32SYM $@
+	cmd_vdso64ilp32sym = $(NM) $< | $(gen-vdso64ilp32sym) | LC_ALL=C sort > $@
+
+include/generated/vdso64ilp32-offsets.h: $(obj)/vdso64ilp32.so.dbg $(obj)/vdso64ilp32.so FORCE
+	$(call if_changed,vdso64ilp32sym)
+
+vdso64ilp32.so: $(obj)/vdso64ilp32.so.dbg
+	@mkdir -p $(MODLIB)/vdso
+	$(call cmd,vdso_install)
+
+vdso64ilp32_install: vdso64ilp32.so
+endif
