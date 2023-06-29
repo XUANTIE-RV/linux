@@ -154,13 +154,13 @@ do {    if ((ex).e_ident[EI_CLASS] == ELFCLASS32)		\
 } while (0)
 #endif /* !CONFIG_ARCH_RV32I */
 
-#ifdef CONFIG_COMPAT
 #define COMPAT_ELF_ET_DYN_BASE		((TASK_SIZE_32 / 3) * 2)
 
 /* rv32 registers */
 typedef compat_ulong_t			compat_elf_greg_t;
 typedef compat_elf_greg_t		compat_elf_gregset_t[ELF_NGREG];
 
+#ifdef CONFIG_COMPAT
 extern int compat_arch_setup_additional_pages(struct linux_binprm *bprm,
 					      int uses_interp);
 #define compat_arch_setup_additional_pages \
