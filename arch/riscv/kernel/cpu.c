@@ -69,12 +69,13 @@ int __init riscv_early_of_processor_hartid(struct device_node *node, unsigned lo
 	if (of_property_read_string(node, "riscv,isa-base", &isa))
 		goto old_interface;
 
-	if (IS_ENABLED(CONFIG_32BIT) && strncasecmp(isa, "rv32i", 5)) {
+	if (IS_ENABLED(CONFIG_ARCH_RV32I) && strncasecmp(isa, "rv32i", 5)) {
 		pr_warn("CPU with hartid=%lu does not support rv32i", *hart);
 		return -ENODEV;
 	}
 
-	if (IS_ENABLED(CONFIG_64BIT) && strncasecmp(isa, "rv64i", 5)) {
+	if ((IS_ENABLED(CONFIG_ARCH_RV64I) || IS_ENABLED(CONFIG_ARCH_RV64ILP32))
+					         && strncasecmp(isa, "rv64i", 5)) {
 		pr_warn("CPU with hartid=%lu does not support rv64i", *hart);
 		return -ENODEV;
 	}
@@ -104,12 +105,13 @@ old_interface:
 		return -ENODEV;
 	}
 
-	if (IS_ENABLED(CONFIG_32BIT) && strncasecmp(isa, "rv32ima", 7)) {
+	if (IS_ENABLED(CONFIG_ARCH_RV32I) && strncasecmp(isa, "rv32ima", 7)) {
 		pr_warn("CPU with hartid=%lu does not support rv32ima", *hart);
 		return -ENODEV;
 	}
 
-	if (IS_ENABLED(CONFIG_64BIT) && strncasecmp(isa, "rv64ima", 7)) {
+	if ((IS_ENABLED(CONFIG_ARCH_RV64I) || IS_ENABLED(CONFIG_ARCH_RV64ILP32))
+					       && strncasecmp(isa, "rv64ima", 7)) {
 		pr_warn("CPU with hartid=%lu does not support rv64ima", *hart);
 		return -ENODEV;
 	}
@@ -206,7 +208,7 @@ static void print_isa(struct seq_file *f)
 {
 	seq_puts(f, "isa\t\t: ");
 
-	if (IS_ENABLED(CONFIG_32BIT))
+	if (IS_ENABLED(CONFIG_ARCH_RV32I))
 		seq_write(f, "rv32", 4);
 	else
 		seq_write(f, "rv64", 4);
