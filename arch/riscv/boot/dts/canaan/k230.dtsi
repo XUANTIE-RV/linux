@@ -9,8 +9,8 @@
 #include <dt-bindings/interrupt-controller/irq.h>
 
 / {
-	model = "T-HEAD c910 ice";
-	compatible = "thead,c910_ice";
+	model = "Canaan Kendryte K230";
+	compatible = "canaan,kendryte-k230";
 	#address-cells = <2>;
 	#size-cells = <2>;
 
