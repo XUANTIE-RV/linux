@@ -46,7 +46,7 @@
 
 
 		clint0: clint@f04000000 {
-			compatible = "riscv,clint0";
+			compatible = "thead,c900-clint";
 			interrupts-extended = <
 				&cpu0_intc  3 &cpu0_intc  7
 				>;
@@ -56,7 +56,7 @@
 
 		intc: interrupt-controller@f00000000 {
 			#interrupt-cells = <1>;
-			compatible = "riscv,plic0";
+			compatible = "thead,c900-plic";
 			interrupt-controller;
 			interrupts-extended = <
 				&cpu0_intc  0xffffffff &cpu0_intc  9
