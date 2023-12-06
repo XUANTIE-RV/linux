@@ -9,6 +9,7 @@
 #include <linux/usb/of.h>
 #include <linux/pci_ids.h>
 #include <linux/pci.h>
+#include <linux/platform_device.h>
 
 #include "core.h"
 
