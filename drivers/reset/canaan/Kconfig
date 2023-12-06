@@ -1,0 +1,7 @@
+# SPDX-License-Identifier: GPL-2.0
+#
+# k230 reset configuration
+#
+config RESET_K230		#config canaan dir enable
+	bool "canaan K230 rst driver support"
+	default SOC_CANAAN

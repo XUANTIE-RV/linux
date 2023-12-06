@@ -322,5 +322,6 @@ source "drivers/reset/starfive/Kconfig"
 source "drivers/reset/sti/Kconfig"
 source "drivers/reset/hisilicon/Kconfig"
 source "drivers/reset/tegra/Kconfig"
+source "drivers/reset/canaan/Kconfig"
 
 endif

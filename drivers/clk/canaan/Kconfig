@@ -1,0 +1,7 @@
+# SPDX-License-Identifier: GPL-2.0
+#
+# k230 clock configuration
+#
+config CLK_K230
+	bool "canaan K230 clk driver support"
+	default SOC_CANAAN

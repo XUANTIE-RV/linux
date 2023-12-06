@@ -10,7 +10,7 @@ config SOC_K210_SYSCTL
 	help
 	  Canaan Kendryte K210 SoC system controller driver.
 
-config K230_PMU
+config SOC_K230_PMU
 	bool "K230 power management unit"
 	depends on RISCV && SOC_CANAAN && OF
 	depends on COMMON_CLK_K210
@@ -19,3 +19,8 @@ config K230_PMU
 	select MFD_SYSCON
 	help
 	  Enables K230 PMU control PMIC.
+
+config SOC_K230_PM_DOMAINS
+	bool "canaan k230 pwr driver support"
+	select PM_GENERIC_DOMAINS if PM
+	default SOC_CANAAN
