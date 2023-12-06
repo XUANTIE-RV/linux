@@ -266,6 +266,48 @@ static void dwc2_set_stm32mp15_hsotg_params(struct dwc2_hsotg *hsotg)
 	p->hird_threshold_en = false;
 }
 
+void k230_otg_phy_init(struct dwc2_hsotg *hsotg)
+{
+    struct platform_device *pdev = to_platform_device(hsotg->dev);
+
+    #define USB_IDPULLUP0 		(1<<4)
+    #define USB_DMPULLDOWN0 	(1<<8)
+    #define USB_DPPULLDOWN0 	(1<<9)
+
+    u32 usb_ctl3 = 0;
+    if(!strcmp(pdev->name, "91500000.usb-otg")) usb_ctl3 = readl(hsotg->hs_regs + 0x7c);
+    else usb_ctl3 = readl(hsotg->hs_regs + 0x9c);
+    usb_ctl3 |= USB_IDPULLUP0;
+    if (dwc2_is_host_mode(hsotg))
+    {
+        usb_ctl3 |= (USB_DMPULLDOWN0 | USB_DPPULLDOWN0);
+    }
+    else
+    {
+        usb_ctl3 &= ~(USB_DMPULLDOWN0 | USB_DPPULLDOWN0);
+    }
+
+    if(!strcmp(pdev->name, "91500000.usb-otg")) writel(usb_ctl3, hsotg->hs_regs + 0x7c);
+    else writel(usb_ctl3, hsotg->hs_regs + 0x9c);;
+}
+
+static void dwc2_set_k230_otg_params(struct dwc2_hsotg *hsotg)
+{
+	struct dwc2_core_params *p = &hsotg->params;
+
+	p->lpm = false;
+	p->lpm_clock_gating = false;
+	p->besl = false;
+	p->hird_threshold_en = false;
+
+	p->host_rx_fifo_size = 1024;
+	p->host_nperio_tx_fifo_size = 512;
+	p->host_perio_tx_fifo_size = 1024;
+	p->ahbcfg = GAHBCFG_HBSTLEN_INCR16 <<
+		GAHBCFG_HBSTLEN_SHIFT;
+    hsotg->kendryte_phy_init = k230_otg_phy_init;
+}
+
 const struct of_device_id dwc2_of_match_table[] = {
 	{ .compatible = "brcm,bcm2835-usb", .data = dwc2_set_bcm_params },
 	{ .compatible = "hisilicon,hi6220-usb", .data = dwc2_set_his_params },
@@ -305,6 +347,8 @@ const struct of_device_id dwc2_of_match_table[] = {
 	  .data = dwc2_set_stm32mp15_hsotg_params },
 	{ .compatible = "intel,socfpga-agilex-hsotg",
 	  .data = dwc2_set_socfpga_agilex_params },
+	{ .compatible = "kendryte,k230-otg",
+	  .data = dwc2_set_k230_otg_params },
 	{},
 };
 MODULE_DEVICE_TABLE(of, dwc2_of_match_table);
