@@ -888,7 +888,7 @@ static inline pte_t pte_swp_clear_exclusive(pte_t pte)
  * 63–48 all equal to bit 47, or else a page-fault exception will occur."
  * Similarly for SV57, bits 63–57 must be equal to bit 56.
  */
-#define TASK_SIZE_32	(_AC(0x80000000, UL) - PAGE_SIZE)
+#define TASK_SIZE_32	_AC(0x80000000, UL)
 
 #ifdef CONFIG_64BIT
 #define TASK_SIZE_64	(PGDIR_SIZE * PTRS_PER_PGD / 2)
