@@ -497,7 +497,7 @@ config RISCV_ISA_SVNAPOT
 
 config RISCV_ISA_SVPBMT
 	bool "Svpbmt extension support for supervisor mode page-based memory types"
-	depends on 64BIT && MMU
+	depends on MMU
 	depends on RISCV_ALTERNATIVE
 	default y
 	help
