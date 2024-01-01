@@ -52,18 +52,18 @@
 				&cpu0_intc  3 &cpu0_intc  7
 				>;
 			reg = <0xf 0x04000000 0x0 0x04000000>;
-			clint,has-no-64bit-mmio;
 		};
 
 		intc: interrupt-controller@f00000000 {
 			compatible = "thead,c900-plic";
 			interrupt-controller;
 			interrupts-extended = <
-				&cpu0_intc  0xffffffff &cpu0_intc  9
+				&cpu0_intc  11 &cpu0_intc  9
 				>;
 			reg = <0xf 0x00000000 0x0 0x04000000>;
 			reg-names = "control";
-			riscv,max-priority = <7>;
+			#address-cells = <0>;
+			#interrupt-cells = <2>;
 			riscv,ndev = <200>;
 		};
 
