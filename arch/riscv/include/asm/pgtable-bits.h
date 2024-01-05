@@ -13,7 +13,11 @@
 #define _PAGE_WRITE     (1 << 2)    /* Writable */
 #define _PAGE_EXEC      (1 << 3)    /* Executable */
 #define _PAGE_USER      (1 << 4)    /* User */
+#if defined(CONFIG_ARCH_RV64ILP32) && defined(CONFIG_MMU_SV32)
+#define _PAGE_GLOBAL    (0)
+#else
 #define _PAGE_GLOBAL    (1 << 5)    /* Global */
+#endif
 #define _PAGE_ACCESSED  (1 << 6)    /* Set by hardware on any access */
 #define _PAGE_DIRTY     (1 << 7)    /* Set by hardware on any write */
 #define _PAGE_SOFT      (1 << 8)    /* Reserved for software */
@@ -25,7 +29,7 @@
  * _PAGE_PROT_NONE is set on not-present pages (and ignored by the hardware) to
  * distinguish them from swapped out pages
  */
-#define _PAGE_PROT_NONE _PAGE_GLOBAL
+#define _PAGE_PROT_NONE (1 << 5)
 
 /* Used for swap PTEs only. */
 #define _PAGE_SWP_EXCLUSIVE _PAGE_ACCESSED

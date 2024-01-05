@@ -190,7 +190,12 @@ static void set_mm_asid(struct mm_struct *mm, unsigned int cpu)
 	raw_spin_unlock_irqrestore(&context_lock, flags);
 
 switch_mm_fast:
+#if defined(CONFIG_ARCH_RV64ILP32) && defined(CONFIG_MMU_SV32)
+	csr_write(CSR_SATP, ((u64)virt_to_pfn(mm->pgd) << 22) |
+			    PFN_DOWN(__pa_symbol(swapper_pg_dir)) |
+#else
 	csr_write(CSR_SATP, virt_to_pfn(mm->pgd) |
+#endif
 		  ((cntx & asid_mask) << SATP_ASID_SHIFT) |
 		  satp_mode);
 
@@ -201,7 +206,13 @@ switch_mm_fast:
 static void set_mm_noasid(struct mm_struct *mm)
 {
 	/* Switch the page table and blindly nuke entire local TLB */
+#if defined(CONFIG_ARCH_RV64ILP32) && defined(CONFIG_MMU_SV32)
+	csr_write(CSR_SATP, ((u64)virt_to_pfn(mm->pgd) << 22) |
+			    PFN_DOWN(__pa_symbol(swapper_pg_dir)) |
+			    satp_mode);
+#else
 	csr_write(CSR_SATP, virt_to_pfn(mm->pgd) | satp_mode);
+#endif
 	local_flush_tlb_all();
 }
 
