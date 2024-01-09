@@ -63,10 +63,10 @@ do {								\
 	(x) = __x;						\
 } while (0)
 
-#ifdef CONFIG_64BIT
+#if __riscv_xlen == 64
 #define __get_user_8(x, ptr, err) \
 	__get_user_asm("ld", x, ptr, err)
-#else /* !CONFIG_64BIT */
+#else /* __riscv_xlen == 64 */
 #define __get_user_8(x, ptr, err)				\
 do {								\
 	u32 __user *__ptr = (u32 __user *)(ptr);		\
@@ -86,7 +86,7 @@ do {								\
 	(x) = (__typeof__(x))((__typeof__((x)-(x)))(		\
 		(((u64)__hi << 32) | __lo)));			\
 } while (0)
-#endif /* CONFIG_64BIT */
+#endif /* __riscv_xlen == 64 */
 
 #define __get_user_nocheck(x, __gu_ptr, __gu_err)		\
 do {								\
@@ -180,10 +180,10 @@ do {								\
 		: "rJ" (__x));					\
 } while (0)
 
-#ifdef CONFIG_64BIT
+#if __riscv_xlen == 64
 #define __put_user_8(x, ptr, err) \
 	__put_user_asm("sd", x, ptr, err)
-#else /* !CONFIG_64BIT */
+#else /* __riscv_xlen == 64 */
 #define __put_user_8(x, ptr, err)				\
 do {								\
 	u32 __user *__ptr = (u32 __user *)(ptr);		\
@@ -201,7 +201,7 @@ do {								\
 			"=m" (__ptr[__MSW])			\
 		: "rJ" (__x), "rJ" (__x >> 32));		\
 } while (0)
-#endif /* CONFIG_64BIT */
+#endif /* __riscv_xlen == 64 */
 
 #define __put_user_nocheck(x, __gu_ptr, __pu_err)					\
 do {								\
