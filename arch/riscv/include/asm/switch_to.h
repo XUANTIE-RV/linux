@@ -81,6 +81,8 @@ do {							\
 		__switch_to_fpu(__prev, __next);	\
 	if (has_vector())					\
 		__switch_to_vector(__prev, __next);	\
+	if (has_matrix())				\
+		__switch_to_matrix(__prev, __next);	\
 	((last) = __switch_to(__prev, __next));		\
 } while (0)
 

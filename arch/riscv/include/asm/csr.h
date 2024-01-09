@@ -38,13 +38,19 @@
 #define SR_VS_CLEAN	_AC(0x00000400, UXL)
 #define SR_VS_DIRTY	_AC(0x00000600, UXL)
 
+#define SR_MS		_AC(0x06000000, UXL) /* Matrix Status */
+#define SR_MS_OFF	_AC(0x00000000, UXL)
+#define SR_MS_INITIAL	_AC(0x02000000, UXL)
+#define SR_MS_CLEAN	_AC(0x04000000, UXL)
+#define SR_MS_DIRTY	_AC(0x06000000, UXL)
+
 #define SR_XS		_AC(0x00018000, UXL) /* Extension Status */
 #define SR_XS_OFF	_AC(0x00000000, UXL)
 #define SR_XS_INITIAL	_AC(0x00008000, UXL)
 #define SR_XS_CLEAN	_AC(0x00010000, UXL)
 #define SR_XS_DIRTY	_AC(0x00018000, UXL)
 
-#define SR_FS_VS	(SR_FS | SR_VS) /* Vector and Floating-Point Unit */
+#define SR_FS_VS	(SR_FS | SR_VS | SR_MS) /* Vector and Floating-Point Unit */
 
 #if __riscv_xlen == 32
 #define SR_SD		_AC(0x80000000, UXL) /* FS/VS/XS dirty */
@@ -399,6 +405,13 @@
 #define CSR_VL			0xc20
 #define CSR_VTYPE		0xc21
 #define CSR_VLENB		0xc22
+
+#define CSR_XMRSTART		0x801
+#define CSR_XMCSR		0x802
+#define CSR_XMSIZE		0x803
+#define CSR_XMLENB		0xcc0
+#define CSR_XRLENB		0xcc1
+#define CSR_XMISA		0xcc2
 
 #ifdef CONFIG_RISCV_M_MODE
 # define CSR_STATUS	CSR_MSTATUS

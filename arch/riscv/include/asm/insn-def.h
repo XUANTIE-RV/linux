@@ -133,6 +133,7 @@
 #define RV___RS2(v)		__RV_REG(v)
 
 #define RV_OPCODE_MISC_MEM	RV_OPCODE(15)
+#define RV_OPCODE_MATRIX	RV_OPCODE(43)
 #define RV_OPCODE_SYSTEM	RV_OPCODE(115)
 
 #define HFENCE_VVMA(vaddr, asid)				\

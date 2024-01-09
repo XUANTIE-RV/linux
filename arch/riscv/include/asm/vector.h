@@ -18,6 +18,89 @@
 #include <asm/hwcap.h>
 #include <asm/csr.h>
 #include <asm/asm.h>
+#include <asm/insn-def.h>
+
+static __always_inline bool has_matrix(void)
+{
+	return riscv_has_extension_unlikely(RISCV_ISA_EXT_ZXTMATRIX);
+}
+
+static inline void __riscv_m_mstate_clean(struct pt_regs *regs)
+{
+	regs->status = (regs->status & ~SR_MS) | SR_MS_CLEAN;
+}
+
+static inline void __riscv_m_mstate_dirty(struct pt_regs *regs)
+{
+	regs->status = (regs->status & ~SR_MS) | SR_MS_DIRTY;
+}
+
+static inline void riscv_m_mstate_off(struct pt_regs *regs)
+{
+	regs->status = (regs->status & ~SR_MS) | SR_MS_OFF;
+}
+
+static inline void riscv_m_mstate_on(struct pt_regs *regs)
+{
+	regs->status = (regs->status & ~SR_MS) | SR_MS_INITIAL;
+}
+
+static inline bool riscv_m_mstate_query(struct pt_regs *regs)
+{
+	return (regs->status & SR_MS) != 0;
+}
+
+static __always_inline void riscv_m_enable(void)
+{
+	csr_set(CSR_SSTATUS, SR_MS);
+}
+
+static __always_inline void riscv_m_disable(void)
+{
+	csr_clear(CSR_SSTATUS, SR_MS);
+}
+
+static __always_inline void __mstate_csr_save(struct __riscv_m_ext_state *dest)
+{
+	asm volatile (
+		"csrr	%0, " __stringify(CSR_XMRSTART) "\n\t"
+		"csrr	%1, " __stringify(CSR_XMCSR) "\n\t"
+		"csrr	%2, " __stringify(CSR_XMSIZE) "\n\t"
+		: "=r" (dest->xmrstart), "=r" (dest->xmcsr), "=r" (dest->xmsize)
+		: :);
+}
+
+static __always_inline void __mstate_csr_restore(struct __riscv_m_ext_state *src)
+{
+	asm volatile (
+		"csrw	" __stringify(CSR_XMRSTART) ", %0\n\t"
+		"csrw	" __stringify(CSR_XMCSR) ", %1\n\t"
+		"csrw	" __stringify(CSR_XMSIZE) ", %2\n\t"
+		: : "r" (src->xmrstart), "r" (src->xmcsr), "r" (src->xmsize)
+		:);
+}
+
+static inline void __riscv_m_mstate_save(struct __riscv_m_ext_state *save_to,
+					 void *datap)
+{
+	riscv_m_enable();
+	__mstate_csr_save(save_to);
+	asm volatile (
+		INSN_R(OPCODE_MATRIX, FUNC3(0), FUNC7(21), __RD(0), RS1(%0), __RS2(7))
+		: : "r" (datap) : "memory");
+	riscv_m_disable();
+}
+
+static inline void __riscv_m_mstate_restore(struct __riscv_m_ext_state *restore_from,
+					    void *datap)
+{
+	riscv_m_enable();
+	asm volatile (
+		INSN_R(OPCODE_MATRIX, FUNC3(0), FUNC7(20), __RD(0), RS1(%0), __RS2(7))
+		: : "r" (datap) : "memory");
+	__mstate_csr_restore(restore_from);
+	riscv_m_disable();
+}
 
 extern unsigned long riscv_v_vsize;
 int riscv_v_setup_vsize(void);
@@ -173,6 +256,17 @@ static inline void riscv_v_vstate_save(struct task_struct *task,
 	}
 }
 
+static inline void riscv_m_mstate_save(struct task_struct *task,
+				       struct pt_regs *regs)
+{
+	if ((regs->status & SR_MS) == SR_MS_DIRTY) {
+		struct __riscv_m_ext_state *mstate = &task->thread.mstate;
+
+		__riscv_m_mstate_save(mstate, mstate->datap);
+		__riscv_m_mstate_clean(regs);
+	}
+}
+
 static inline void riscv_v_vstate_restore(struct task_struct *task,
 					  struct pt_regs *regs)
 {
@@ -182,6 +276,27 @@ static inline void riscv_v_vstate_restore(struct task_struct *task,
 		__riscv_v_vstate_restore(vstate, vstate->datap);
 		__riscv_v_vstate_clean(regs);
 	}
+}
+
+static inline void riscv_m_mstate_restore(struct task_struct *task,
+					  struct pt_regs *regs)
+{
+	if ((regs->status & SR_MS) != SR_MS_OFF) {
+		struct __riscv_m_ext_state *mstate = &task->thread.mstate;
+
+		__riscv_m_mstate_restore(mstate, mstate->datap);
+		__riscv_m_mstate_clean(regs);
+	}
+}
+
+static inline void __switch_to_matrix(struct task_struct *prev,
+				      struct task_struct *next)
+{
+	struct pt_regs *regs;
+
+	regs = task_pt_regs(prev);
+	riscv_m_mstate_save(prev, regs);
+	riscv_m_mstate_restore(next, task_pt_regs(next));
 }
 
 static inline void __switch_to_vector(struct task_struct *prev,
@@ -203,6 +318,7 @@ struct pt_regs;
 
 static inline int riscv_v_setup_vsize(void) { return -EOPNOTSUPP; }
 static __always_inline bool has_vector(void) { return false; }
+static __always_inline bool has_matrix(void) { return false; }
 static inline bool riscv_v_first_use_handler(struct pt_regs *regs) { return false; }
 static inline bool riscv_v_vstate_query(struct pt_regs *regs) { return false; }
 static inline bool riscv_v_vstate_ctrl_user_allowed(void) { return false; }
@@ -213,6 +329,12 @@ static inline bool riscv_v_vstate_ctrl_user_allowed(void) { return false; }
 #define __switch_to_vector(__prev, __next)	do {} while (0)
 #define riscv_v_vstate_off(regs)		do {} while (0)
 #define riscv_v_vstate_on(regs)			do {} while (0)
+
+#define riscv_m_mstate_save(task, regs)		do {} while (0)
+#define riscv_m_mstate_restore(task, regs)	do {} while (0)
+#define __switch_to_matrix(__prev, __next)	do {} while (0)
+#define riscv_m_mstate_off(regs)		do {} while (0)
+#define riscv_m_mstate_on(regs)			do {} while (0)
 
 #endif /* CONFIG_RISCV_ISA_V */
 
