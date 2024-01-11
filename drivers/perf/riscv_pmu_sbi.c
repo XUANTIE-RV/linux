@@ -366,7 +366,7 @@ static int pmu_sbi_ctr_get_idx(struct perf_event *event)
 	}
 
 	/* retrieve the available counter index */
-#if defined(CONFIG_32BIT)
+#if __riscv_xlen == 32
 	ret = sbi_ecall(SBI_EXT_PMU, SBI_EXT_PMU_COUNTER_CFG_MATCH, cbase,
 			cmask, cflags, hwc->event_base, hwc->config,
 			hwc->config >> 32);
@@ -499,7 +499,7 @@ static u64 pmu_sbi_ctr_read(struct perf_event *event)
 	} else {
 		info = pmu_ctr_list[idx];
 		val = riscv_pmu_ctr_read_csr(info.csr);
-		if (IS_ENABLED(CONFIG_32BIT))
+		if (__riscv_xlen == 32)
 			val = ((u64)riscv_pmu_ctr_read_csr(info.csr + 0x80)) << 31 | val;
 	}
 
@@ -530,7 +530,7 @@ static void pmu_sbi_ctr_start(struct perf_event *event, u64 ival)
 	struct hw_perf_event *hwc = &event->hw;
 	unsigned long flag = SBI_PMU_START_FLAG_SET_INIT_VALUE;
 
-#if defined(CONFIG_32BIT)
+#if __riscv_xlen == 32
 	ret = sbi_ecall(SBI_EXT_PMU, SBI_EXT_PMU_COUNTER_START, hwc->idx,
 			1, flag, ival, ival >> 32, 0);
 #else
@@ -656,7 +656,7 @@ static inline void pmu_sbi_start_overflow_mask(struct riscv_pmu *pmu,
 			hwc = &event->hw;
 			max_period = riscv_pmu_ctr_get_width_mask(event);
 			init_val = local64_read(&hwc->prev_count) & max_period;
-#if defined(CONFIG_32BIT)
+#if __riscv_xlen == 32
 			sbi_ecall(SBI_EXT_PMU, SBI_EXT_PMU_COUNTER_START, idx, 1,
 				  flag, init_val, init_val >> 32, 0);
 #else
