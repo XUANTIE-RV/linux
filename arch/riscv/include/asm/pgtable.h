@@ -131,14 +131,15 @@
 #define VA_USER_SV48 (UL(1) << (VA_BITS_SV48 - 1))
 #define VA_USER_SV57 (UL(1) << (VA_BITS_SV57 - 1))
 
-#ifdef CONFIG_COMPAT
 #define MMAP_VA_BITS_64 ((VA_BITS >= VA_BITS_SV48) ? VA_BITS_SV48 : VA_BITS)
 #define MMAP_MIN_VA_BITS_64 (VA_BITS_SV39)
-#define MMAP_VA_BITS (is_compat_task() ? VA_BITS_SV32 : MMAP_VA_BITS_64)
-#define MMAP_MIN_VA_BITS (is_compat_task() ? VA_BITS_SV32 : MMAP_MIN_VA_BITS_64)
+
+#ifdef CONFIG_COMPAT
+#define MMAP_VA_BITS ((is_compat_task() || force_task_size_32) ? VA_BITS_SV32 : MMAP_VA_BITS_64)
+#define MMAP_MIN_VA_BITS ((is_compat_task() || force_task_size_32) ? VA_BITS_SV32 : MMAP_MIN_VA_BITS_64)
 #else
-#define MMAP_VA_BITS ((VA_BITS >= VA_BITS_SV48) ? VA_BITS_SV48 : VA_BITS)
-#define MMAP_MIN_VA_BITS (VA_BITS_SV39)
+#define MMAP_VA_BITS (force_task_size_32 ? VA_BITS_SV32 : MMAP_VA_BITS_64)
+#define MMAP_MIN_VA_BITS (force_task_size_32 ? VA_BITS_SV32 : MMAP_MIN_VA_BITS_64)
 #endif /* CONFIG_COMPAT */
 
 #else
@@ -858,6 +859,8 @@ static inline pte_t pte_swp_clear_exclusive(pte_t pte)
 	return __pte(pte_val(pte) & ~_PAGE_SWP_EXCLUSIVE);
 }
 
+extern bool force_task_size_32;
+
 #ifdef CONFIG_ARCH_ENABLE_THP_MIGRATION
 #define __pmd_to_swp_entry(pmd) ((swp_entry_t) { pmd_val(pmd) })
 #define __swp_entry_to_pmd(swp) __pmd((swp).val)
@@ -895,10 +898,11 @@ static inline pte_t pte_swp_clear_exclusive(pte_t pte)
 #define TASK_SIZE_MIN	(PGDIR_SIZE_L3 * PTRS_PER_PGD / 2)
 
 #ifdef CONFIG_COMPAT
-#define TASK_SIZE	(test_thread_flag(TIF_32BIT) ? \
+#define TASK_SIZE       ((test_thread_flag(TIF_32BIT) || force_task_size_32) ? \
 			 TASK_SIZE_32 : TASK_SIZE_64)
 #else
-#define TASK_SIZE	TASK_SIZE_64
+#define TASK_SIZE       (force_task_size_32 ? \
+			 TASK_SIZE_32 : TASK_SIZE_64)
 #endif
 
 #else

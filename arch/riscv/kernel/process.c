@@ -207,3 +207,14 @@ int copy_thread(struct task_struct *p, const struct kernel_clone_args *args)
 	p->thread.sp = (unsigned long)childregs; /* kernel sp */
 	return 0;
 }
+
+bool force_task_size_32 = false;
+EXPORT_SYMBOL(force_task_size_32);
+
+static int __init force_task_2gb(char *p)
+{
+	force_task_size_32 = true;
+	pr_info("Force u64lp64 task size into 2GB.\n");
+	return 0;
+}
+early_param("force_task_2gb", force_task_2gb);
