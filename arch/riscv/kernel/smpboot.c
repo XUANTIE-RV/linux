@@ -210,7 +210,7 @@ int __cpu_up(unsigned int cpu, struct task_struct *tidle)
 	ret = start_secondary_cpu(cpu, tidle);
 	if (!ret) {
 		wait_for_completion_timeout(&cpu_running,
-					    msecs_to_jiffies(1000));
+					    msecs_to_jiffies(10000));
 
 		if (!cpu_online(cpu)) {
 			pr_crit("CPU%u: failed to come online\n", cpu);
