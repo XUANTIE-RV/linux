@@ -1405,6 +1405,7 @@ optee_config_shm_memremap(optee_invoke_fn *invoke_fn, void **memremaped_shm)
 	return rc;
 }
 
+#ifdef CONFIG_HAVE_ARM_SMCCC
 /* Simple wrapper functions to be able to use a function pointer */
 static void optee_smccc_smc(unsigned long a0, unsigned long a1,
 			    unsigned long a2, unsigned long a3,
@@ -1423,6 +1424,36 @@ static void optee_smccc_hvc(unsigned long a0, unsigned long a1,
 {
 	arm_smccc_hvc(a0, a1, a2, a3, a4, a5, a6, a7, res);
 }
+#endif
+
+#ifdef CONFIG_RISCV
+static void optee_riscv(unsigned long arg0, unsigned long arg1,
+		unsigned long arg2, unsigned long arg3,
+		unsigned long arg4, unsigned long arg5,
+		unsigned long arg6, unsigned long arg7,
+		struct arm_smccc_res *res)
+{
+	register uintptr_t a0 asm ("a0") = (uintptr_t)arg0;
+	register uintptr_t a1 asm ("a1") = (uintptr_t)arg1;
+	register uintptr_t a2 asm ("a2") = (uintptr_t)arg2;
+	register uintptr_t a3 asm ("a3") = (uintptr_t)arg3;
+	register uintptr_t a4 asm ("a4") = (uintptr_t)arg4;
+	register uintptr_t a5 asm ("a5") = (uintptr_t)arg5;
+	register uintptr_t a6 asm ("a6") = (uintptr_t)arg6;
+	register uintptr_t a7 asm ("a7") = (uintptr_t)0x09000000;
+	register uintptr_t t0 asm ("t0") = (uintptr_t)arg7;
+
+	asm volatile ("ecall"
+			: "+r" (a0), "+r" (a1), "+r" (a2), "+r"(a3)
+			: "r" (a4), "r" (a5), "r" (a6), "r" (a7), "r" (t0)
+			: "memory");
+
+	res->a0 = a0;
+	res->a1 = a1;
+	res->a2 = a2;
+	res->a3 = a3;
+}
+#endif
 
 static optee_invoke_fn *get_invoke_func(struct device *dev)
 {
@@ -1435,10 +1466,16 @@ static optee_invoke_fn *get_invoke_func(struct device *dev)
 		return ERR_PTR(-ENXIO);
 	}
 
+#ifdef CONFIG_HAVE_ARM_SMCCC
 	if (!strcmp("hvc", method))
 		return optee_smccc_hvc;
 	else if (!strcmp("smc", method))
 		return optee_smccc_smc;
+#endif
+
+#ifdef CONFIG_RISCV
+	return optee_riscv;
+#endif
 
 	pr_warn("invalid \"method\" property: %s\n", method);
 	return ERR_PTR(-EINVAL);
