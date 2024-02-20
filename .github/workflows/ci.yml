@@ -1,0 +1,91 @@
+name: ci-build
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 2 * * *"
+
+env:
+  xt64_toolchain: https://occ-oss-prod.oss-cn-hangzhou.aliyuncs.com/resource//1695643844189
+  xt64_toolchain_file_name: Xuantie-900-gcc-linux-5.10.4-glibc-x86_64-V2.6.2-20230916.tar.gz
+  rv32_toolchain: https://github.com/riscv-collab/riscv-gnu-toolchain/releases/download/2023.12.20
+  rv32_toolchain_file_name: riscv32-glibc-ubuntu-22.04-gcc-nightly-2023.12.20-nightly.tar.gz
+  rv64_toolchain: https://github.com/riscv-collab/riscv-gnu-toolchain/releases/download/2023.12.20
+  rv64_toolchain_file_name: riscv64-glibc-ubuntu-22.04-gcc-nightly-2023.12.20-nightly.tar.gz
+
+jobs:
+  kernel:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: linux-32ilp32
+            toolchain_tripe: riscv32-unknown-linux-gnu-
+          - name: linux-64lp64
+            toolchain_tripe: riscv64-unknown-linux-gnu-
+          - name: linux-64lp64-xt
+            toolchain_tripe: riscv64-unknown-linux-gnu-
+
+    runs-on: ubuntu-22.04
+    env:
+      CROSS_COMPILE: ${{ matrix.toolchain_tripe }}
+
+    steps:
+      - name: Install software
+        run: |
+              sudo apt update && \
+              sudo apt install -y build-essential
+
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      - name: Configure toolchains
+        run: |
+              if [ x"${{ matrix.name }}" = x"linux-32ilp32" ]; then
+                wget ${rv32_toolchain}/${rv32_toolchain_file_name}
+                tar -xvf ${rv32_toolchain_file_name} -C /opt
+                rm -v ${rv32_toolchain_file_name}
+              fi
+              if [ x"${{ matrix.name }}" = x"linux-64lp64" ]; then
+                wget ${rv64_toolchain}/${rv64_toolchain_file_name}
+                tar -xvf ${rv64_toolchain_file_name} -C /opt
+                rm -v ${rv64_toolchain_file_name}
+              fi
+              if [ x"${{ matrix.name }}" = x"linux-64lp64-xt" ]; then
+                wget ${xt64_toolchain}/${xt64_toolchain_file_name}
+                tar -xvf ${xt64_toolchain_file_name} -C /opt
+                mv /opt/Xuantie-900-gcc-linux-5.10.4-glibc-x86_64-V2.6.2 /opt/riscv
+                rm -v ${xt64_toolchain_file_name}
+              fi
+      - name: Compile
+        run: |
+              if [ x"${{ matrix.name }}" = x"linux-32ilp32" ]; then
+                export PATH="/opt/riscv/bin:$PATH"
+                make ARCH=riscv EXTRA_CFLAGS+=-g rv32_defconfig all -j$(nproc)
+                mv arch/riscv/boot/Image ./
+                git log --oneline -500 > git.log
+                tar czvf ${{ matrix.name }}.tar.gz Image vmlinux git.log
+              fi
+              if [ x"${{ matrix.name }}" = x"linux-64lp64" ]; then
+                export PATH="/opt/riscv/bin:$PATH"
+                make ARCH=riscv EXTRA_CFLAGS+=-g defconfig all -j$(nproc)
+                mv arch/riscv/boot/Image ./
+                git log --oneline -500 > git.log
+                tar czvf ${{ matrix.name }}.tar.gz Image vmlinux git.log
+              fi
+              if [ x"${{ matrix.name }}" = x"linux-64lp64-xt" ]; then
+                export PATH="/opt/riscv/bin:$PATH"
+                make ARCH=riscv EXTRA_CFLAGS+=-g defconfig all -j$(nproc)
+                mv arch/riscv/boot/Image ./
+                git log --oneline -500 > git.log
+                tar czvf ${{ matrix.name }}.tar.gz Image vmlinux git.log
+              fi
+
+      - name: 'Upload Artifact'
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.name }}.tar.gz
+          path: ${{ matrix.name }}.tar.gz
+          retention-days: 90
