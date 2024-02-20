@@ -63,24 +63,24 @@ jobs:
         run: |
               if [ x"${{ matrix.name }}" = x"linux-32ilp32" ]; then
                 export PATH="/opt/riscv/bin:$PATH"
-                make ARCH=riscv EXTRA_CFLAGS+=-g rv32_defconfig all -j$(nproc)
+                make ARCH=riscv EXTRA_CFLAGS+=-g rv32_defconfig all INSTALL_MOD_PATH=./modules_install modules_install INSTALL_HDR_PATH=./headers_install headers_install -j$(nproc)
                 mv arch/riscv/boot/Image ./
                 git log --oneline -500 > git.log
-                tar czvf ${{ matrix.name }}.tar.gz Image vmlinux git.log
+                tar czvf ${{ matrix.name }}.tar.gz Image vmlinux git.log modules_install headers_install
               fi
               if [ x"${{ matrix.name }}" = x"linux-64lp64" ]; then
                 export PATH="/opt/riscv/bin:$PATH"
-                make ARCH=riscv EXTRA_CFLAGS+=-g defconfig all -j$(nproc)
+                make ARCH=riscv EXTRA_CFLAGS+=-g defconfig all INSTALL_MOD_PATH=./modules_install modules_install INSTALL_HDR_PATH=./headers_install headers_install -j$(nproc)
                 mv arch/riscv/boot/Image ./
                 git log --oneline -500 > git.log
-                tar czvf ${{ matrix.name }}.tar.gz Image vmlinux git.log
+                tar czvf ${{ matrix.name }}.tar.gz Image vmlinux git.log modules_install headers_install
               fi
               if [ x"${{ matrix.name }}" = x"linux-64lp64-xt" ]; then
                 export PATH="/opt/riscv/bin:$PATH"
-                make ARCH=riscv EXTRA_CFLAGS+=-g defconfig all -j$(nproc)
+                make ARCH=riscv EXTRA_CFLAGS+=-g defconfig all INSTALL_MOD_PATH=./modules_install modules_install INSTALL_HDR_PATH=./headers_install headers_install -j$(nproc)
                 mv arch/riscv/boot/Image ./
                 git log --oneline -500 > git.log
-                tar czvf ${{ matrix.name }}.tar.gz Image vmlinux git.log
+                tar czvf ${{ matrix.name }}.tar.gz Image vmlinux git.log modules_install headers_install
               fi
 
       - name: 'Upload Artifact'
