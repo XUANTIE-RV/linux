@@ -74,15 +74,17 @@ jobs:
                 export PATH="/opt/riscv/bin:$PATH"
                 make ARCH=riscv EXTRA_CFLAGS+=-g rv32_defconfig all INSTALL_MOD_PATH=./modules_install modules_install INSTALL_HDR_PATH=./headers_install headers_install -j$(nproc)
                 mv arch/riscv/boot/Image ./
+                cp Documentation/admin-guide/kdump/gdbmacros.txt ./
                 git log --oneline -500 > git.log
-                tar czvf ${{ matrix.name }}.tar.gz Image vmlinux git.log modules_install headers_install
+                tar czvf ${{ matrix.name }}.tar.gz Image vmlinux git.log modules_install headers_install gdbmacros.txt
               fi
               if [ x"${{ matrix.name }}" = x"linux-64lp64" ]; then
                 export PATH="/opt/riscv/bin:$PATH"
                 make ARCH=riscv EXTRA_CFLAGS+=-g defconfig all INSTALL_MOD_PATH=./modules_install modules_install INSTALL_HDR_PATH=./headers_install headers_install -j$(nproc)
                 mv arch/riscv/boot/Image ./
+                cp Documentation/admin-guide/kdump/gdbmacros.txt ./
                 git log --oneline -500 > git.log
-                tar czvf ${{ matrix.name }}.tar.gz Image vmlinux git.log modules_install headers_install
+                tar czvf ${{ matrix.name }}.tar.gz Image vmlinux git.log modules_install headers_install gdbmacros.txt
               fi
               if [ x"${{ matrix.name }}" = x"linux-64ilp32" ]; then
                 export PATH="/opt/riscv/bin:$PATH"
@@ -95,15 +97,17 @@ jobs:
                 git checkout arch/riscv/configs/64ilp32.config
                 make ARCH=riscv EXTRA_CFLAGS+=-g rv64ilp32_defconfig all INSTALL_MOD_PATH=./modules_install modules_install INSTALL_HDR_PATH=./headers_install headers_install -j$(nproc)
                 mv arch/riscv/boot/Image ./
+                cp Documentation/admin-guide/kdump/gdbmacros.txt ./
                 git log --oneline -500 > git.log
-                tar czvf ${{ matrix.name }}.tar.gz Image vmlinux modules_install headers_install Image_sv32xt vmlinux_sv32xt modules_install_sv32xt headers_install_sv32xt git.log
+                tar czvf ${{ matrix.name }}.tar.gz Image vmlinux modules_install headers_install Image_sv32xt vmlinux_sv32xt modules_install_sv32xt headers_install_sv32xt git.log gdbmacros.txt
               fi
               if [ x"${{ matrix.name }}" = x"linux-64lp64-xt" ]; then
                 export PATH="/opt/riscv/bin:$PATH"
                 make ARCH=riscv EXTRA_CFLAGS+=-g defconfig all INSTALL_MOD_PATH=./modules_install modules_install INSTALL_HDR_PATH=./headers_install headers_install -j$(nproc)
                 mv arch/riscv/boot/Image ./
+                cp Documentation/admin-guide/kdump/gdbmacros.txt ./
                 git log --oneline -500 > git.log
-                tar czvf ${{ matrix.name }}.tar.gz Image vmlinux git.log modules_install headers_install
+                tar czvf ${{ matrix.name }}.tar.gz Image vmlinux git.log modules_install headers_install gdbmacros.txt
               fi
 
       - name: 'Upload Artifact'
