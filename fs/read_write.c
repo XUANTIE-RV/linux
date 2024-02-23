@@ -669,7 +669,7 @@ ssize_t ksys_pread64(unsigned int fd, char __user *buf, size_t count,
 	return ret;
 }
 
-#ifdef CONFIG_ARCH_HAS_64ILP32_KERNEL
+#if defined(CONFIG_ARCH_HAS_64ILP32_KERNEL) || defined(CONFIG_ARCH_RV32I)
 SYSCALL_DEFINE5(pread64, unsigned int, fd, char __user *, buf,
 			size_t, count, compat_arg_u64_dual(pos))
 {
@@ -711,7 +711,7 @@ ssize_t ksys_pwrite64(unsigned int fd, const char __user *buf,
 	return ret;
 }
 
-#ifdef CONFIG_ARCH_HAS_64ILP32_KERNEL
+#if defined(CONFIG_ARCH_HAS_64ILP32_KERNEL) || defined(CONFIG_ARCH_RV32I)
 SYSCALL_DEFINE5(pwrite64, unsigned int, fd, const char __user *, buf,
 			 size_t, count, compat_arg_u64_dual(pos))
 {

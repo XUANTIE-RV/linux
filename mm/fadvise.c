@@ -202,7 +202,7 @@ int ksys_fadvise64_64(int fd, loff_t offset, loff_t len, int advice)
 	return ret;
 }
 
-#ifdef CONFIG_ARCH_HAS_64ILP32_KERNEL
+#if defined(CONFIG_ARCH_HAS_64ILP32_KERNEL) || defined(CONFIG_ARCH_RV32I)
 
 SYSCALL_DEFINE6(fadvise64_64, int, fd, compat_arg_u64_dual(offset),
 		       compat_arg_u64_dual(len), int, advice)

@@ -214,7 +214,7 @@ COMPAT_SYSCALL_DEFINE2(ftruncate, unsigned int, fd, compat_ulong_t, length)
 
 /* LFS versions of truncate are only needed on 32 bit machines */
 #if BITS_PER_LONG == 32
-#ifdef CONFIG_ARCH_HAS_64ILP32_KERNEL
+#if defined(CONFIG_ARCH_HAS_64ILP32_KERNEL) || defined(CONFIG_ARCH_RV32I)
 SYSCALL_DEFINE3(truncate64, const char __user *, path, compat_arg_u64_dual(length))
 {
 	return do_sys_truncate(path, compat_arg_u64_glue(length));
@@ -362,7 +362,7 @@ int ksys_fallocate(int fd, int mode, loff_t offset, loff_t len)
 	return error;
 }
 
-#ifdef CONFIG_ARCH_HAS_64ILP32_KERNEL
+#if defined(CONFIG_ARCH_HAS_64ILP32_KERNEL) || defined(CONFIG_ARCH_RV32I)
 SYSCALL_DEFINE6(fallocate, int, fd, int, mode,
 		compat_arg_u64_dual(offset),
 		compat_arg_u64_dual(len))
