@@ -14,8 +14,8 @@ env:
   rv32_toolchain_file_name: riscv32-glibc-ubuntu-22.04-gcc-nightly-2024.02.02-nightly.tar.gz
   rv64_toolchain: https://github.com/riscv-collab/riscv-gnu-toolchain/releases/download/2024.02.02
   rv64_toolchain_file_name: riscv64-glibc-ubuntu-22.04-gcc-nightly-2024.02.02-nightly.tar.gz
-  rv64ilp32_toolchain: https://github.com/ruyisdk/riscv-gnu-toolchain-rv64ilp32/releases/download/2024.02.20
-  rv64ilp32_toolchain_file_name: riscv64ilp32-elf-ubuntu-22.04-gcc-nightly-2024.02.20-nightly.tar.gz
+  rv64ilp32_toolchain: https://github.com/ruyisdk/riscv-gnu-toolchain-rv64ilp32/releases/download/2024.02.23
+  rv64ilp32_toolchain_file_name: riscv64ilp32-elf-ubuntu-22.04-gcc-nightly-2024.02.23-nightly.tar.gz
 
 jobs:
   kernel:
