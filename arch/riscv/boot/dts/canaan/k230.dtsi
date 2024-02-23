@@ -42,6 +42,7 @@
 		#address-cells = <2>;
 		#size-cells = <2>;
 		#interrupt-cells = <2>;
+		dma-noncoherent;
 		compatible = "simple-bus";
 		ranges;
 
