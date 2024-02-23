@@ -39,8 +39,9 @@ static bool errata_probe_cmo(unsigned int stage,
 	if (!IS_ENABLED(CONFIG_ERRATA_THEAD_CMO))
 		return false;
 
-	if (arch_id != 0 || impid != 0)
+	if ( (arch_id != 0 || impid != 0) && !(arch_id == 0x8000000009140d00 && impid == 0x50000) ) {
 		return false;
+	}
 
 	if (stage == RISCV_ALTERNATIVES_EARLY_BOOT)
 		return false;
