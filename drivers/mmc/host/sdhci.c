@@ -42,7 +42,7 @@
 #define SDHCI_DUMP(f, x...) \
 	pr_err("%s: " DRIVER_NAME ": " f, mmc_hostname(host->mmc), ## x)
 
-#define MAX_TUNING_LOOP 40
+#define MAX_TUNING_LOOP 128
 
 static unsigned int debug_quirks = 0;
 static unsigned int debug_quirks2;
@@ -1980,6 +1980,7 @@ void sdhci_enable_clk(struct sdhci_host *host, u16 clk)
 	ktime_t timeout;
 
 	clk |= SDHCI_CLOCK_INT_EN;
+	clk |= SDHCI_PROG_CLOCK_MODE;
 	sdhci_writew(host, clk, SDHCI_CLOCK_CONTROL);
 
 	/* Wait max 150 ms */
