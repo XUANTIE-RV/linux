@@ -21,7 +21,7 @@
 	};
 
 	chosen {
-		bootargs = "";
+		bootargs = "earlycon=sbi console=ttyS0,115200 loglevel=8 root=/dev/mmcblk1p2 rw rootwait audit=0";
 		linux,initrd-start = <0x0 0xa100000>;
 		linux,initrd-end = <0x0 0x0>;
 		stdout-path = "serial0:115200";
