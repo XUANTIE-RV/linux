@@ -115,6 +115,10 @@
 #define XIP_OFFSET		0
 #endif
 
+#ifndef CONFIG_MMU_SV32
+#define MAX_POSSIBLE_PHYSMEM_BITS 56
+#endif
+
 #ifndef __ASSEMBLY__
 
 #include <asm/page.h>
