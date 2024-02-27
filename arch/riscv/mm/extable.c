@@ -23,18 +23,18 @@ get_ex_fixup(const struct exception_table_entry *ex)
 static bool ex_handler_fixup(const struct exception_table_entry *ex,
 			     struct pt_regs *regs)
 {
-	regs->epc = get_ex_fixup(ex);
+	regs->epc = (xlen_t)get_ex_fixup(ex);
 	return true;
 }
 
 static inline void regs_set_gpr(struct pt_regs *regs, unsigned int offset,
-				unsigned long val)
+				xlen_t val)
 {
 	if (unlikely(offset > MAX_REG_OFFSET))
 		return;
 
 	if (offset)
-		*(unsigned long *)((unsigned long)regs + offset) = val;
+		*(xlen_t *)((unsigned long)regs + offset) = val;
 }
 
 static bool ex_handler_uaccess_err_zero(const struct exception_table_entry *ex,
@@ -43,8 +43,8 @@ static bool ex_handler_uaccess_err_zero(const struct exception_table_entry *ex,
 	int reg_err = FIELD_GET(EX_DATA_REG_ERR, ex->data);
 	int reg_zero = FIELD_GET(EX_DATA_REG_ZERO, ex->data);
 
-	regs_set_gpr(regs, reg_err * sizeof(unsigned long), -EFAULT);
-	regs_set_gpr(regs, reg_zero * sizeof(unsigned long), 0);
+	regs_set_gpr(regs, reg_err * sizeof(xlen_t), -EFAULT);
+	regs_set_gpr(regs, reg_zero * sizeof(xlen_t), 0);
 
 	regs->epc = get_ex_fixup(ex);
 	return true;
