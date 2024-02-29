@@ -345,7 +345,7 @@ static inline unsigned long pte_pfn(pte_t pte)
 #define pte_page(x)     pfn_to_page(pte_pfn(x))
 
 /* Constructs a page table entry */
-static inline pte_t pfn_pte(unsigned long pfn, pgprot_t prot)
+static inline pte_t pfn_pte(xlen_t pfn, pgprot_t prot)
 {
 	ptval_t prot_val = pgprot_val(prot);
 
