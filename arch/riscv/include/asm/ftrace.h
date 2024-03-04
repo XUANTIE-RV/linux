@@ -135,20 +135,20 @@ int ftrace_init_nop(struct module *mod, struct dyn_ftrace *rec);
 #ifndef __ASSEMBLY__
 #ifdef CONFIG_FUNCTION_GRAPH_TRACER
 struct fgraph_ret_regs {
-	unsigned long a1;
-	unsigned long a0;
-	unsigned long s0;
-	unsigned long ra;
+	xlen_t a1;
+	xlen_t a0;
+	xlen_t s0;
+	xlen_t ra;
 };
 
 static inline unsigned long fgraph_ret_regs_return_value(struct fgraph_ret_regs *ret_regs)
 {
-	return ret_regs->a0;
+	return (unsigned long)ret_regs->a0;
 }
 
 static inline unsigned long fgraph_ret_regs_frame_pointer(struct fgraph_ret_regs *ret_regs)
 {
-	return ret_regs->s0;
+	return (unsigned long)ret_regs->s0;
 }
 #endif /* ifdef CONFIG_FUNCTION_GRAPH_TRACER */
 #endif
