@@ -65,10 +65,9 @@ jobs:
                 rm -v ${rv64ilp32_toolchain_file_name}
               fi
               if [ x"${{ matrix.name }}" = x"linux-64lp64-dirty" ]; then
-                wget ${xt64_toolchain}/${xt64_toolchain_file_name}
-                tar -xvf ${xt64_toolchain_file_name} -C /opt
-                mv /opt/Xuantie-900-gcc-linux-5.10.4-glibc-x86_64-V2.6.2 /opt/riscv
-                rm -v ${xt64_toolchain_file_name}
+                wget ${rv64_toolchain}/${rv64_toolchain_file_name}
+                tar -xvf ${rv64_toolchain_file_name} -C /opt
+                rm -v ${rv64_toolchain_file_name}
               fi
               if [ x"${{ matrix.name }}" = x"linux-32ilp32-dirty" ]; then
                 wget ${rv32_toolchain}/${rv32_toolchain_file_name}
