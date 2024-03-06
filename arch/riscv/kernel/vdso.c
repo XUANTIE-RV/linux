@@ -172,7 +172,8 @@ static vm_fault_t vvar_fault(const struct vm_special_mapping *sm,
 	return vmf_insert_pfn(vma, vmf->address, pfn);
 }
 
-static struct vm_special_mapping rv_vdso_maps[] __ro_after_init = {
+#ifdef CONFIG_VDSO64
+static struct vm_special_mapping vdso64_maps[] __ro_after_init = {
 	[RV_VDSO_MAP_VVAR] = {
 		.name   = "[vvar]",
 		.fault = vvar_fault,
@@ -182,34 +183,52 @@ static struct vm_special_mapping rv_vdso_maps[] __ro_after_init = {
 		.mremap = vdso_mremap,
 	},
 };
-
-#ifdef CONFIG_VDSO64
 static struct __vdso_info vdso64_info __ro_after_init = {
 	.name = "vdso",
 	.vdso_code_start = vdso64_start,
 	.vdso_code_end = vdso64_end,
-	.dm = &rv_vdso_maps[RV_VDSO_MAP_VVAR],
-	.cm = &rv_vdso_maps[RV_VDSO_MAP_VDSO],
+	.dm = &vdso64_maps[RV_VDSO_MAP_VVAR],
+	.cm = &vdso64_maps[RV_VDSO_MAP_VDSO],
 };
 #endif
 
 #ifdef CONFIG_VDSO32
+static struct vm_special_mapping vdso32_maps[] __ro_after_init = {
+	[RV_VDSO_MAP_VVAR] = {
+		.name   = "[vvar]",
+		.fault = vvar_fault,
+	},
+	[RV_VDSO_MAP_VDSO] = {
+		.name   = "[vdso]",
+		.mremap = vdso_mremap,
+	},
+};
 static struct __vdso_info vdso32_info __ro_after_init = {
 	.name = "vdso32",
 	.vdso_code_start = vdso32_start,
 	.vdso_code_end = vdso32_end,
-	.dm = &rv_vdso_maps[RV_VDSO_MAP_VVAR],
-	.cm = &rv_vdso_maps[RV_VDSO_MAP_VDSO],
+	.dm = &vdso32_maps[RV_VDSO_MAP_VVAR],
+	.cm = &vdso32_maps[RV_VDSO_MAP_VDSO],
 };
 #endif
 
 #ifdef CONFIG_VDSO64ILP32
+static struct vm_special_mapping vdso64ilp32_maps[] __ro_after_init = {
+	[RV_VDSO_MAP_VVAR] = {
+		.name   = "[vvar]",
+		.fault = vvar_fault,
+	},
+	[RV_VDSO_MAP_VDSO] = {
+		.name   = "[vdso]",
+		.mremap = vdso_mremap,
+	},
+};
 static struct __vdso_info vdso64ilp32_info __ro_after_init = {
 	.name = "vdso64ilp32",
 	.vdso_code_start = vdso64ilp32_start,
 	.vdso_code_end = vdso64ilp32_end,
-	.dm = &rv_vdso_maps[RV_VDSO_MAP_VVAR],
-	.cm = &rv_vdso_maps[RV_VDSO_MAP_VDSO],
+	.dm = &vdso64ilp32_maps[RV_VDSO_MAP_VVAR],
+	.cm = &vdso64ilp32_maps[RV_VDSO_MAP_VDSO],
 };
 #endif
 
