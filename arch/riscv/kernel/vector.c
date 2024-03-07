@@ -122,8 +122,13 @@ static int riscv_v_thread_zalloc(void)
 static int riscv_m_thread_zalloc(void)
 {
 	void *datap;
+	size_t alloc_size;
 
-	datap = kzalloc(csr_read(CSR_XMLENB) * 8, GFP_KERNEL);
+	riscv_m_enable();
+	alloc_size = csr_read(CSR_XMLENB) * 8;
+	riscv_m_disable();
+
+	datap = kzalloc(alloc_size, GFP_KERNEL);
 	if (!datap)
 		return -ENOMEM;
 
