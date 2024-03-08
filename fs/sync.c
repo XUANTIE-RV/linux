@@ -367,7 +367,7 @@ int ksys_sync_file_range(int fd, loff_t offset, loff_t nbytes,
 	return ret;
 }
 
-#ifdef CONFIG_ARCH_HAS_64ILP32_KERNEL
+#if defined(CONFIG_ARCH_HAS_64ILP32_KERNEL) || defined(CONFIG_ARCH_RV32I)
 SYSCALL_DEFINE6(sync_file_range, int, fd,
 				compat_arg_u64_dual(offset),
 				compat_arg_u64_dual(nbytes),
@@ -395,7 +395,7 @@ COMPAT_SYSCALL_DEFINE6(sync_file_range, int, fd, compat_arg_u64_dual(offset),
 
 /* It would be nice if people remember that not all the world's an i386
    when they introduce new system calls */
-#ifdef CONFIG_ARCH_HAS_64ILP32_KERNEL
+#if defined(CONFIG_ARCH_HAS_64ILP32_KERNEL) || defined(CONFIG_ARCH_RV32I)
 SYSCALL_DEFINE6(sync_file_range2, int, fd, unsigned int, flags,
 				compat_arg_u64_dual(offset),
 				compat_arg_u64_dual(nbytes))
