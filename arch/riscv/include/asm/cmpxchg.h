@@ -164,6 +164,12 @@
  * store NEW in MEM.  Return the initial value in MEM.  Success is
  * indicated by comparing RETURN with OLD.
  */
+#ifdef CONFIG_ARCH_RV64ILP32
+#define SEXTW	"\tsext.w  %z3, %z3\n"
+#else
+#define SEXTW	""
+#endif
+
 #define __cmpxchg_relaxed(ptr, old, new, size)				\
 ({									\
 	__typeof__(ptr) __ptr = (ptr);					\
@@ -174,6 +180,7 @@
 	switch (size) {							\
 	case 4:								\
 		__asm__ __volatile__ (					\
+			SEXTW						\
 			"0:	lr.w %0, %2\n"				\
 			"	bne  %0, %z3, 1f\n"			\
 			"	sc.w %1, %z4, %2\n"			\
@@ -218,6 +225,7 @@
 	switch (size) {							\
 	case 4:								\
 		__asm__ __volatile__ (					\
+			SEXTW						\
 			"0:	lr.w %0, %2\n"				\
 			"	bne  %0, %z3, 1f\n"			\
 			"	sc.w %1, %z4, %2\n"			\
@@ -264,6 +272,7 @@
 	switch (size) {							\
 	case 4:								\
 		__asm__ __volatile__ (					\
+			SEXTW						\
 			RISCV_RELEASE_BARRIER				\
 			"0:	lr.w %0, %2\n"				\
 			"	bne  %0, %z3, 1f\n"			\
@@ -310,6 +319,7 @@
 	switch (size) {							\
 	case 4:								\
 		__asm__ __volatile__ (					\
+			SEXTW						\
 			"0:	lr.w %0, %2\n"				\
 			"	bne  %0, %z3, 1f\n"			\
 			"	sc.w.rl %1, %z4, %2\n"			\
