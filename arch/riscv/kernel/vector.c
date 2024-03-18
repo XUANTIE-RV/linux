@@ -18,6 +18,7 @@
 #include <asm/csr.h>
 #include <asm/elf.h>
 #include <asm/ptrace.h>
+#include <asm/sbi.h>
 #include <asm/bug.h>
 
 static bool riscv_v_implicit_uacc = IS_ENABLED(CONFIG_RISCV_ISA_V_DEFAULT_ENABLE);
@@ -28,6 +29,13 @@ EXPORT_SYMBOL_GPL(riscv_v_vsize);
 int riscv_v_setup_vsize(void)
 {
 	unsigned long this_vsize;
+
+	if (sbi_get_mvendorid() == THEAD_VENDOR_ID &&
+	    sbi_get_marchid() == 0 &&
+	    sbi_get_mimpid() == 0) {
+		riscv_v_vsize = 128 / 8 * 32;
+		return 0;
+	}
 
 	/* There are 32 vector registers with vlenb length. */
 	riscv_v_enable();
@@ -179,9 +187,17 @@ static bool __riscv_v_first_use_handler(struct pt_regs *regs)
 {
 	u32 __user *epc = (u32 __user *)(ulong)regs->epc;
 	u32 insn = (u32)regs->badaddr;
+	bool check;
 
 	/* Do not handle if V is not supported, or disabled */
-	if (!(ELF_HWCAP & COMPAT_HWCAP_ISA_V))
+	if (riscv_cached_mvendorid(0) == THEAD_VENDOR_ID &&
+	    riscv_cached_marchid(0) == 0 &&
+	    riscv_cached_mimpid(0) == 0) {
+		check = has_vector();
+	} else {
+		check = ELF_HWCAP & COMPAT_HWCAP_ISA_V;
+	}
+	if (!check)
 		return false;
 
 	/* If V has been enabled then it is not the first-use trap */
