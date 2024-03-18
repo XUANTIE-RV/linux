@@ -29,6 +29,13 @@ int riscv_v_setup_vsize(void)
 {
 	unsigned long this_vsize;
 
+	if (csr_read(CSR_MVENDORID) == THEAD_VENDOR_ID &&
+	    csr_read(CSR_MARCHID) == 0 &&
+	    csr_read(CSR_MIMPID) == 0) {
+		riscv_v_vsize = 128 / 8 * 32;
+		return 0;
+	}
+
 	/* There are 32 vector registers with vlenb length. */
 	riscv_v_enable();
 	this_vsize = csr_read(CSR_VLENB) * 32;
