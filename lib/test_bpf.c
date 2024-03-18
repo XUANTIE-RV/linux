@@ -4515,7 +4515,7 @@ static struct bpf_test tests[] = {
 		{ },
 		{ { 0, -1 } }
 	},
-#ifdef CONFIG_32BIT
+#if defined(CONFIG_32BIT) && !defined(CONFIG_ARCH_RV64ILP32)
 	{
 		"INT: 32-bit context pointer word order and zero-extension",
 		.u.insns_int = {
