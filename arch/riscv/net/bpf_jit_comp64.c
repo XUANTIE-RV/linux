@@ -473,7 +473,7 @@ static int emit_call(u64 addr, bool fixed_addr, struct rv_jit_context *ctx)
 		 * Use the ro_insns(RX) to calculate the offset as the BPF
 		 * program will finally run from this memory region.
 		 */
-		ip = (u64)(long)(ctx->ro_insns + ctx->ninsns);
+		ip = (u64)(unsigned long)(ctx->ro_insns + ctx->ninsns);
 		off = addr - ip;
 	}
 
