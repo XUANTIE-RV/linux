@@ -33,6 +33,12 @@ jobs:
             toolchain_tripe: riscv64-unknown-linux-gnu-
           - name: linux-32ilp32-dirty
             toolchain_tripe: riscv32-unknown-linux-gnu-
+          - name: linux-64ilp32_12hz
+            toolchain_tripe: riscv64-unknown-elf-
+          - name: linux-64lp64-dirty_12hz
+            toolchain_tripe: riscv64-unknown-linux-gnu-
+          - name: linux-32ilp32-dirty_12hz
+            toolchain_tripe: riscv32-unknown-linux-gnu-
 
     runs-on: ubuntu-22.04
     env:
@@ -74,6 +80,21 @@ jobs:
                 tar -xvf ${rv32_toolchain_file_name} -C /opt
                 rm -v ${rv32_toolchain_file_name}
               fi
+              if [ x"${{ matrix.name }}" = x"linux-64ilp32_12hz" ]; then
+                wget ${rv64ilp32_toolchain}/${rv64ilp32_toolchain_file_name}
+                tar -xvf ${rv64ilp32_toolchain_file_name} -C /opt
+                rm -v ${rv64ilp32_toolchain_file_name}
+              fi
+              if [ x"${{ matrix.name }}" = x"linux-64lp64-dirty_12hz" ]; then
+                wget ${rv64_toolchain}/${rv64_toolchain_file_name}
+                tar -xvf ${rv64_toolchain_file_name} -C /opt
+                rm -v ${rv64_toolchain_file_name}
+              fi
+              if [ x"${{ matrix.name }}" = x"linux-32ilp32-dirty_12hz" ]; then
+                wget ${rv32_toolchain}/${rv32_toolchain_file_name}
+                tar -xvf ${rv32_toolchain_file_name} -C /opt
+                rm -v ${rv32_toolchain_file_name}
+              fi
 
       - name: Compile
         run: |
@@ -105,6 +126,7 @@ jobs:
                 mv ${{ matrix.name }}.tar.gz ../
                 cd ..
               fi
+
               if [ x"${{ matrix.name }}" = x"linux-64ilp32" ]; then
                 export PATH="/opt/riscv/bin:$PATH"
                 echo CONFIG_MMU_SV32=y >> arch/riscv/configs/64ilp32.config
@@ -130,6 +152,41 @@ jobs:
               fi
               if [ x"${{ matrix.name }}" = x"linux-32ilp32-dirty" ]; then
                 export PATH="/opt/riscv/bin:$PATH"
+                make ARCH=riscv EXTRA_CFLAGS+=-g rv32_defconfig all INSTALL_MOD_PATH=./modules_install modules_install INSTALL_HDR_PATH=./headers_install headers_install -j$(nproc)
+                mv arch/riscv/boot/Image ./
+                cp Documentation/admin-guide/kdump/gdbmacros.txt ./
+                git log --oneline -500 > git.log
+                tar czvf ${{ matrix.name }}.tar.gz Image vmlinux git.log modules_install headers_install gdbmacros.txt
+              fi
+
+              if [ x"${{ matrix.name }}" = x"linux-64ilp32_12hz" ]; then
+                export PATH="/opt/riscv/bin:$PATH"
+                echo CONFIG_HZ_12=y >> arch/riscv/configs/defconfig
+                echo CONFIG_MMU_SV32=y >> arch/riscv/configs/64ilp32.config
+                make ARCH=riscv EXTRA_CFLAGS+=-g rv64ilp32_defconfig all INSTALL_MOD_PATH=./modules_install modules_install INSTALL_HDR_PATH=./headers_install headers_install -j$(nproc)
+                mv arch/riscv/boot/Image ./Image_sv32xt
+                mv vmlinux vmlinux_sv32xt
+                mv headers_install headers_install_sv32xt
+                mv modules_install modules_install_sv32xt
+                git checkout arch/riscv/configs/64ilp32.config
+                make ARCH=riscv EXTRA_CFLAGS+=-g rv64ilp32_defconfig all INSTALL_MOD_PATH=./modules_install modules_install INSTALL_HDR_PATH=./headers_install headers_install -j$(nproc)
+                mv arch/riscv/boot/Image ./
+                cp Documentation/admin-guide/kdump/gdbmacros.txt ./
+                git log --oneline -500 > git.log
+                tar czvf ${{ matrix.name }}.tar.gz Image vmlinux modules_install headers_install Image_sv32xt vmlinux_sv32xt modules_install_sv32xt headers_install_sv32xt git.log gdbmacros.txt
+              fi
+              if [ x"${{ matrix.name }}" = x"linux-64lp64-dirty_12hz" ]; then
+                export PATH="/opt/riscv/bin:$PATH"
+                echo CONFIG_HZ_12=y >> arch/riscv/configs/defconfig
+                make ARCH=riscv EXTRA_CFLAGS+=-g defconfig all INSTALL_MOD_PATH=./modules_install modules_install INSTALL_HDR_PATH=./headers_install headers_install -j$(nproc)
+                mv arch/riscv/boot/Image ./
+                cp Documentation/admin-guide/kdump/gdbmacros.txt ./
+                git log --oneline -500 > git.log
+                tar czvf ${{ matrix.name }}.tar.gz Image vmlinux git.log modules_install headers_install gdbmacros.txt
+              fi
+              if [ x"${{ matrix.name }}" = x"linux-32ilp32-dirty_12hz" ]; then
+                export PATH="/opt/riscv/bin:$PATH"
+                echo CONFIG_HZ_12=y >> arch/riscv/configs/defconfig
                 make ARCH=riscv EXTRA_CFLAGS+=-g rv32_defconfig all INSTALL_MOD_PATH=./modules_install modules_install INSTALL_HDR_PATH=./headers_install headers_install -j$(nproc)
                 mv arch/riscv/boot/Image ./
                 cp Documentation/admin-guide/kdump/gdbmacros.txt ./
