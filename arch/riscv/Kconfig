@@ -518,8 +518,6 @@ config TOOLCHAIN_HAS_V
 	default y
 	depends on !64BIT || $(cc-option,-mabi=lp64 -march=rv64iv)
 	depends on !32BIT || $(cc-option,-mabi=ilp32 -march=rv32iv)
-	depends on LLD_VERSION >= 140000 || LD_VERSION >= 23800
-	depends on AS_HAS_OPTION_ARCH
 
 config RISCV_ISA_V
 	bool "VECTOR extension support"
