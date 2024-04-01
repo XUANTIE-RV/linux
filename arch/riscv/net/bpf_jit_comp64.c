@@ -366,12 +366,20 @@ static int emit_bpf_tail_call(int insn, struct rv_jit_context *ctx)
 	 * if (!prog)
 	 *     goto out;
 	 */
+#ifdef CONFIG_ARCH_RV64ILP32
+	emit_slli(RV_REG_T2, RV_REG_A2, 2, ctx);
+#else
 	emit_slli(RV_REG_T2, RV_REG_A2, 3, ctx);
+#endif
 	emit_add(RV_REG_T2, RV_REG_T2, RV_REG_A1, ctx);
 	off = offsetof(struct bpf_array, ptrs);
 	if (is_12b_check(off, insn))
 		return -1;
+#ifdef CONFIG_ARCH_RV64ILP32
+	emit_lw(RV_REG_T2, off, RV_REG_T2, ctx);
+#else
 	emit_ld(RV_REG_T2, off, RV_REG_T2, ctx);
+#endif
 	off = ninsns_rvoff(tc_ninsn - (ctx->ninsns - start_insn));
 	emit_branch(BPF_JEQ, RV_REG_T2, RV_REG_ZERO, off, ctx);
 
@@ -379,7 +387,11 @@ static int emit_bpf_tail_call(int insn, struct rv_jit_context *ctx)
 	off = offsetof(struct bpf_prog, bpf_func);
 	if (is_12b_check(off, insn))
 		return -1;
+#ifdef CONFIG_ARCH_RV64ILP32
+	emit_lw(RV_REG_T3, off, RV_REG_T2, ctx);
+#else
 	emit_ld(RV_REG_T3, off, RV_REG_T2, ctx);
+#endif
 	__build_epilogue(true, ctx);
 	return 0;
 }
