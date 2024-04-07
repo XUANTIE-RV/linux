@@ -113,7 +113,7 @@ static bool insn_is_matrix(u32 insn_buf)
 	return false;
 }
 
-static int riscv_v_thread_zalloc(void)
+int riscv_v_thread_zalloc(struct task_struct *tsk)
 {
 	void *datap;
 
@@ -121,9 +121,10 @@ static int riscv_v_thread_zalloc(void)
 	if (!datap)
 		return -ENOMEM;
 
-	current->thread.vstate.datap = datap;
-	memset(&current->thread.vstate, 0, offsetof(struct __riscv_v_ext_state,
-						    datap));
+	tsk->thread.vstate.datap = datap;
+	memset(&tsk->thread.vstate, 0, offsetof(struct __riscv_v_ext_state,
+						datap));
+	tsk->thread.vstate.vlenb = riscv_v_vsize/32;
 	return 0;
 }
 
@@ -222,7 +223,7 @@ static bool __riscv_v_first_use_handler(struct pt_regs *regs)
 	 * context where VS has been off. So, try to allocate the user's V
 	 * context and resume execution.
 	 */
-	if (riscv_v_thread_zalloc()) {
+	if (riscv_v_thread_zalloc(current)) {
 		force_sig(SIGBUS);
 		return true;
 	}

@@ -92,8 +92,13 @@ static int riscv_vr_get(struct task_struct *target,
 	struct __riscv_v_ext_state *vstate = &target->thread.vstate;
 	struct __riscv_v_regset_state ptrace_vstate;
 
-	if (!riscv_v_vstate_query(task_pt_regs(target)))
-		return -EINVAL;
+	if (!riscv_v_vstate_query(task_pt_regs(target))) {
+		if (riscv_v_thread_zalloc(target))
+			return -EINVAL;
+		riscv_v_vstate_on(task_pt_regs(target));
+		if (target == current)
+			riscv_v_vstate_restore(current, task_pt_regs(current));
+	}
 
 	/*
 	 * Ensure the vector registers have been saved to the memory before
@@ -124,8 +129,13 @@ static int riscv_vr_set(struct task_struct *target,
 	struct __riscv_v_ext_state *vstate = &target->thread.vstate;
 	struct __riscv_v_regset_state ptrace_vstate;
 
-	if (!riscv_v_vstate_query(task_pt_regs(target)))
-		return -EINVAL;
+	if (!riscv_v_vstate_query(task_pt_regs(target))) {
+		if (riscv_v_thread_zalloc(target))
+			return -EINVAL;
+		riscv_v_vstate_on(task_pt_regs(target));
+		if (target == current)
+			riscv_v_vstate_restore(current, task_pt_regs(current));
+	}
 
 	/* Copy rest of the vstate except datap */
 	ret = user_regset_copyin(&pos, &count, &kbuf, &ubuf, &ptrace_vstate, 0,
