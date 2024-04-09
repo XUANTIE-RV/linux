@@ -23,7 +23,7 @@
 
 static __always_inline bool has_matrix(void)
 {
-	return riscv_has_extension_unlikely(RISCV_ISA_EXT_ZXTMATRIX);
+	return riscv_has_extension_unlikely(RISCV_ISA_EXT_XTHEADMATRIX);
 }
 
 static inline void __riscv_m_mstate_clean(struct pt_regs *regs)
