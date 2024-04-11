@@ -64,7 +64,7 @@ static __always_inline void riscv_m_disable(void)
 static __always_inline void __mstate_csr_save(struct __riscv_m_ext_state *dest)
 {
 	asm volatile (
-		"csrr	%0, " __stringify(CSR_XMRSTART) "\n\t"
+		"csrrw	%0, " __stringify(CSR_XMRSTART) ", 0\n\t"
 		"csrr	%1, " __stringify(CSR_XMCSR) "\n\t"
 		"csrr	%2, " __stringify(CSR_XMSIZE) "\n\t"
 		: "=r" (dest->xmrstart), "=r" (dest->xmcsr), "=r" (dest->xmsize)
@@ -97,6 +97,7 @@ static inline void __riscv_m_mstate_restore(struct __riscv_m_ext_state *restore_
 {
 	riscv_m_enable();
 	asm volatile (
+		"csrw	" __stringify(CSR_XMRSTART) ", 0\n\t"
 		INSN_R(OPCODE_MATRIX, FUNC3(0), FUNC7(20), __RD(0), RS1(%0), __RS2(7))
 		: : "r" (datap) : "memory");
 	__mstate_csr_restore(restore_from);
