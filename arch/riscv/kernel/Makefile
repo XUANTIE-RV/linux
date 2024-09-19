@@ -12,7 +12,11 @@ endif
 ifdef CONFIG_KEXEC
 AFLAGS_kexec_relocate.o := -mcmodel=medany $(call cc-option,-mno-relax)
 endif
-
+ifdef CONFIG_VECTOR_1_0
+AFLAGS_vector.o := $(subst rv64ima,rv64imav,$(KBUILD_AFLAGS))
+else
+AFLAGS_vector.o := $(subst rv64ima,rv64imav0p7,$(KBUILD_AFLAGS))
+endif
 extra-y += head.o
 extra-y += vmlinux.lds
 
