@@ -13,9 +13,17 @@ ifdef CONFIG_KEXEC
 AFLAGS_kexec_relocate.o := -mcmodel=medany $(call cc-option,-mno-relax)
 endif
 ifdef CONFIG_VECTOR_1_0
-AFLAGS_vector.o := $(subst rv64ima,rv64imav,$(KBUILD_AFLAGS))
+ifdef CONFIG_RISCV_ISA_C
+AFLAGS_vector.o := $(subst rv64imafdc,rv64imafdcv,$(KBUILD_AFLAGS))
 else
-AFLAGS_vector.o := $(subst rv64ima,rv64imav0p7,$(KBUILD_AFLAGS))
+AFLAGS_vector.o := $(subst rv64imafd,rv64imafdv,$(KBUILD_AFLAGS))
+endif
+else
+ifdef CONFIG_RISCV_ISA_C
+AFLAGS_vector.o := $(subst rv64imafdc,rv64imafdcv0p7,$(KBUILD_AFLAGS))
+else
+AFLAGS_vector.o := $(subst rv64imafd,rv64imafdv0p7,$(KBUILD_AFLAGS))
+endif
 endif
 extra-y += head.o
 extra-y += vmlinux.lds
