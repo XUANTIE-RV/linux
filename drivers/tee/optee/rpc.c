@@ -357,7 +357,7 @@ static void handle_rpc_func_cmd_shm_alloc(struct tee_context *ctx,
 		 * In the least bits of u.tmem.buf_ptr we store buffer offset
 		 * from 4k page, as described in OP-TEE ABI.
 		 */
-		arg->params[0].u.tmem.buf_ptr = virt_to_phys(pages_list) |
+		arg->params[0].u.tmem.buf_ptr = __virt_to_phys(pages_list) |
 			(tee_shm_get_page_offset(shm) &
 			 (OPTEE_MSG_NONCONTIG_PAGE_SIZE - 1));
 		arg->params[0].u.tmem.size = tee_shm_get_size(shm);

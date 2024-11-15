@@ -495,7 +495,7 @@ void optee_fill_pages_list(u64 *dst, struct page **pages, int num_pages,
 
 		if (n == PAGELIST_ENTRIES_PER_PAGE) {
 			pages_data->next_page_data =
-				virt_to_phys(pages_data + 1);
+				__virt_to_phys(pages_data + 1);
 			pages_data++;
 			n = 0;
 		}
@@ -538,6 +538,8 @@ static bool is_normal_memory(pgprot_t p)
 		((pgprot_val(p) & L_PTE_MT_MASK) == L_PTE_MT_WRITEBACK));
 #elif defined(CONFIG_ARM64)
 	return (pgprot_val(p) & PTE_ATTRINDX_MASK) == PTE_ATTRINDX(MT_NORMAL);
+#elif defined(CONFIG_RISCV)
+	return true;
 #else
 #error "Unuspported architecture"
 #endif
@@ -613,7 +615,7 @@ int optee_shm_register(struct tee_context *ctx, struct tee_shm *shm,
 	 * In the least bits of msg_arg->params->u.tmem.buf_ptr we
 	 * store buffer offset from 4k page, as described in OP-TEE ABI.
 	 */
-	msg_arg->params->u.tmem.buf_ptr = virt_to_phys(pages_list) |
+	msg_arg->params->u.tmem.buf_ptr = __virt_to_phys(pages_list) |
 	  (tee_shm_get_page_offset(shm) & (OPTEE_MSG_NONCONTIG_PAGE_SIZE - 1));
 
 	if (optee_do_call_with_arg(ctx, msg_parg) ||
