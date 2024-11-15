@@ -7,3 +7,6 @@ optee-objs += supp.o
 optee-objs += shm_pool.o
 optee-objs += device.o
 optee-objs += bench.o
+
+# for tracing framework to find optee_trace.h
+CFLAGS_call.o := -I$(src)
