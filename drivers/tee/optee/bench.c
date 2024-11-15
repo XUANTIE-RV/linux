@@ -70,6 +70,7 @@ static inline u64 read_ccounter(void)
 #elif defined(__arm__)
 	asm volatile("mrc p15, 0, %0, c9, c13, 0" : "=r"(ccounter));
 #else
+	asm volatile("csrr %0, cycle" : "=r"(ccounter));
 	/* TODO for riscv arch */
 #endif
 
