@@ -352,6 +352,42 @@ tee_ioctl_shm_register(struct tee_context *ctx,
 	return ret;
 }
 
+static int tee_ioctl_shm_register_fd(struct tee_context *ctx,
+			struct tee_ioctl_shm_register_fd_data __user *udata)
+{
+	struct tee_ioctl_shm_register_fd_data data;
+	struct tee_shm *shm;
+	long ret;
+
+	if (copy_from_user(&data, udata, sizeof(data)))
+		return -EFAULT;
+
+	/* Currently no input flags are supported */
+	if (data.flags)
+		return -EINVAL;
+
+	shm = tee_shm_register_fd(ctx, data.fd);
+	if (IS_ERR_OR_NULL(shm))
+		return -EINVAL;
+
+	data.id = shm->id;
+	data.flags = shm->flags;
+	data.size = shm->size;
+
+	if (copy_to_user(udata, &data, sizeof(data)))
+		ret = -EFAULT;
+	else
+		ret = tee_shm_get_fd(shm);
+
+	/*
+	 * When user space closes the file descriptor the shared memory
+	 * should be freed or if tee_shm_get_fd() failed then it will
+	 * be freed immediately.
+	 */
+	tee_shm_put(shm);
+	return ret;
+}
+
 static int params_from_user(struct tee_context *ctx, struct tee_param *params,
 			    size_t num_params,
 			    struct tee_ioctl_param __user *uparams)
@@ -825,6 +861,8 @@ static long tee_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
 		return tee_ioctl_shm_alloc(ctx, uarg);
 	case TEE_IOC_SHM_REGISTER:
 		return tee_ioctl_shm_register(ctx, uarg);
+	case TEE_IOC_SHM_REGISTER_FD:
+		return tee_ioctl_shm_register_fd(ctx, uarg);
 	case TEE_IOC_OPEN_SESSION:
 		return tee_ioctl_open_session(ctx, uarg);
 	case TEE_IOC_INVOKE:
@@ -931,6 +969,7 @@ struct tee_device *tee_device_alloc(const struct tee_desc *teedesc,
 
 	cdev_init(&teedev->cdev, &tee_fops);
 	teedev->cdev.owner = teedesc->owner;
+	teedev->cdev.kobj.parent = &teedev->dev.kobj;
 
 	dev_set_drvdata(&teedev->dev, driver_data);
 	device_initialize(&teedev->dev);
@@ -976,7 +1015,9 @@ static struct attribute *tee_dev_attrs[] = {
 	NULL
 };
 
-ATTRIBUTE_GROUPS(tee_dev);
+static const struct attribute_group tee_dev_group = {
+	.attrs = tee_dev_attrs,
+};
 
 /**
  * tee_device_register() - Registers a TEE device
@@ -996,19 +1037,39 @@ int tee_device_register(struct tee_device *teedev)
 		return -EINVAL;
 	}
 
-	teedev->dev.groups = tee_dev_groups;
-
-	rc = cdev_device_add(&teedev->cdev, &teedev->dev);
+	rc = cdev_add(&teedev->cdev, teedev->dev.devt, 1);
 	if (rc) {
 		dev_err(&teedev->dev,
-			"unable to cdev_device_add() %s, major %d, minor %d, err=%d\n",
+			"unable to cdev_add() %s, major %d, minor %d, err=%d\n",
 			teedev->name, MAJOR(teedev->dev.devt),
 			MINOR(teedev->dev.devt), rc);
 		return rc;
 	}
 
+	rc = device_add(&teedev->dev);
+	if (rc) {
+		dev_err(&teedev->dev,
+			"unable to device_add() %s, major %d, minor %d, err=%d\n",
+			teedev->name, MAJOR(teedev->dev.devt),
+			MINOR(teedev->dev.devt), rc);
+		goto err_device_add;
+	}
+
+	rc = sysfs_create_group(&teedev->dev.kobj, &tee_dev_group);
+	if (rc) {
+		dev_err(&teedev->dev,
+			"failed to create sysfs attributes, err=%d\n", rc);
+		goto err_sysfs_create_group;
+	}
+
 	teedev->flags |= TEE_DEVICE_FLAG_REGISTERED;
 	return 0;
+
+err_sysfs_create_group:
+	device_del(&teedev->dev);
+err_device_add:
+	cdev_del(&teedev->cdev);
+	return rc;
 }
 EXPORT_SYMBOL_GPL(tee_device_register);
 
@@ -1051,8 +1112,11 @@ void tee_device_unregister(struct tee_device *teedev)
 	if (!teedev)
 		return;
 
-	if (teedev->flags & TEE_DEVICE_FLAG_REGISTERED)
-		cdev_device_del(&teedev->cdev, &teedev->dev);
+	if (teedev->flags & TEE_DEVICE_FLAG_REGISTERED) {
+		sysfs_remove_group(&teedev->dev.kobj, &tee_dev_group);
+		cdev_del(&teedev->cdev);
+		device_del(&teedev->dev);
+	}
 
 	tee_device_put(teedev);
 	wait_for_completion(&teedev->c_no_users);

@@ -346,6 +346,16 @@ struct tee_shm *tee_shm_register(struct tee_context *ctx, unsigned long addr,
 				 size_t length, u32 flags);
 
 /**
+ * tee_shm_register_fd() - Register shared memory from file descriptor
+ *
+ * @ctx:	Context that allocates the shared memory
+ * @fd:		shared memory file descriptor reference.
+ *
+ * @returns a pointer to 'struct tee_shm'
+ */
+struct tee_shm *tee_shm_register_fd(struct tee_context *ctx, int fd);
+
+/**
  * tee_shm_is_registered() - Check if shared memory object in registered in TEE
  * @shm:	Shared memory handle
  * @returns true if object is registered in TEE
