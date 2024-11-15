@@ -407,6 +407,8 @@ struct optee_msg_arg {
 #define OPTEE_MSG_RPC_SHM_TYPE_APPL	0
 /* Memory only shared with non-secure kernel */
 #define OPTEE_MSG_RPC_SHM_TYPE_KERNEL	1
+/* Memory shared with non-secure kernel, but exported to userspace */
+#define OPTEE_MSG_RPC_SHM_TYPE_GLOBAL	2
 
 /*
  * Free shared memory previously allocated with OPTEE_MSG_RPC_CMD_SHM_ALLOC
@@ -420,24 +422,11 @@ struct optee_msg_arg {
 #define OPTEE_MSG_RPC_CMD_SHM_FREE	7
 
 /*
- * Access a device on an i2c bus
+ * Register timestamp buffer
  *
- * [in]  param[0].u.value.a		mode: RD(0), WR(1)
- * [in]  param[0].u.value.b		i2c adapter
- * [in]  param[0].u.value.c		i2c chip
- *
- * [in]  param[1].u.value.a		i2c control flags
- *
- * [in/out] memref[2]			buffer to exchange the transfer data
- *					with the secure world
- *
- * [out]  param[3].u.value.a		bytes transferred by the driver
+ * [in] param[0].u.value.a	Subcommand (register buffer, unregister buffer)
+ * [in] param[0].u.value.b	Physical address of timestamp buffer
+ * [in] param[0].u.value.c	Size of buffer
  */
-#define OPTEE_MSG_RPC_CMD_I2C_TRANSFER 21
-/* I2C master transfer modes */
-#define OPTEE_MSG_RPC_CMD_I2C_TRANSFER_RD 0
-#define OPTEE_MSG_RPC_CMD_I2C_TRANSFER_WR 1
-/* I2C master control flags */
-#define OPTEE_MSG_RPC_CMD_I2C_FLAGS_TEN_BIT  BIT(0)
-
+#define OPTEE_MSG_RPC_CMD_BENCH_REG	20
 #endif /* _OPTEE_MSG_H */

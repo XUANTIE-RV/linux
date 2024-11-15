@@ -137,7 +137,8 @@ static void ion_buffer_kmap_put(struct ion_buffer *buffer)
 	}
 }
 
-static struct sg_table *dup_sg_table(struct sg_table *table)
+static struct sg_table *dup_sg_table(struct sg_table *table,
+				     bool preserve_dma_address)
 {
 	struct sg_table *new_table;
 	int ret, i;
@@ -156,7 +157,8 @@ static struct sg_table *dup_sg_table(struct sg_table *table)
 	new_sg = new_table->sgl;
 	for_each_sgtable_sg(table, sg, i) {
 		memcpy(new_sg, sg, sizeof(*sg));
-		new_sg->dma_address = 0;
+		if (!preserve_dma_address)
+			new_sg->dma_address = 0;
 		new_sg = sg_next(new_sg);
 	}
 
@@ -173,6 +175,7 @@ struct ion_dma_buf_attachment {
 	struct device *dev;
 	struct sg_table *table;
 	struct list_head list;
+	bool no_map;
 };
 
 static int ion_dma_buf_attach(struct dma_buf *dmabuf,
@@ -186,7 +189,10 @@ static int ion_dma_buf_attach(struct dma_buf *dmabuf,
 	if (!a)
 		return -ENOMEM;
 
-	table = dup_sg_table(buffer->sg_table);
+	if (buffer->heap->type == ION_HEAP_TYPE_UNMAPPED)
+		a->no_map = true;
+
+	table = dup_sg_table(buffer->sg_table, a->no_map);
 	if (IS_ERR(table)) {
 		kfree(a);
 		return -ENOMEM;
@@ -205,8 +211,8 @@ static int ion_dma_buf_attach(struct dma_buf *dmabuf,
 	return 0;
 }
 
-static void ion_dma_buf_detach(struct dma_buf *dmabuf,
-			       struct dma_buf_attachment *attachment)
+static void ion_dma_buf_detatch(struct dma_buf *dmabuf,
+				struct dma_buf_attachment *attachment)
 {
 	struct ion_dma_buf_attachment *a = attachment->priv;
 	struct ion_buffer *buffer = dmabuf->priv;
@@ -228,6 +234,9 @@ static struct sg_table *ion_map_dma_buf(struct dma_buf_attachment *attachment,
 
 	table = a->table;
 
+	if (a->no_map)
+		return table;
+
 	ret = dma_map_sgtable(attachment->dev, table, direction, 0);
 	if (ret)
 		return ERR_PTR(ret);
@@ -239,6 +248,11 @@ static void ion_unmap_dma_buf(struct dma_buf_attachment *attachment,
 			      struct sg_table *table,
 			      enum dma_data_direction direction)
 {
+	struct ion_dma_buf_attachment *a = attachment->priv;
+
+	if (a->no_map)
+		return;
+
 	dma_unmap_sgtable(attachment->dev, table, direction, 0);
 }
 
@@ -331,7 +345,7 @@ static const struct dma_buf_ops dma_buf_ops = {
 	.mmap = ion_mmap,
 	.release = ion_dma_buf_release,
 	.attach = ion_dma_buf_attach,
-	.detach = ion_dma_buf_detach,
+	.detach = ion_dma_buf_detatch,
 	.begin_cpu_access = ion_dma_buf_begin_cpu_access,
 	.end_cpu_access = ion_dma_buf_end_cpu_access,
 };

@@ -12,21 +12,13 @@
 #include <linux/uio.h>
 #include "tee_private.h"
 
-static void release_registered_pages(struct tee_shm *shm)
-{
-	if (shm->pages) {
-		if (shm->flags & TEE_SHM_USER_MAPPED) {
-			unpin_user_pages(shm->pages, shm->num_pages);
-		} else {
-			size_t n;
-
-			for (n = 0; n < shm->num_pages; n++)
-				put_page(shm->pages[n]);
-		}
-
-		kfree(shm->pages);
-	}
-}
+/* extra references appended to shm object for registered shared memory */
+struct tee_shm_dmabuf_ref {
+     struct tee_shm shm;
+     struct dma_buf *dmabuf;
+     struct dma_buf_attachment *attach;
+     struct sg_table *sgt;
+};
 
 static void tee_shm_release(struct tee_shm *shm)
 {
@@ -38,7 +30,15 @@ static void tee_shm_release(struct tee_shm *shm)
 		mutex_unlock(&teedev->mutex);
 	}
 
-	if (shm->flags & TEE_SHM_POOL) {
+	if (shm->flags & TEE_SHM_EXT_DMA_BUF) {
+		struct tee_shm_dmabuf_ref *ref;
+
+		ref = container_of(shm, struct tee_shm_dmabuf_ref, shm);
+		dma_buf_unmap_attachment(ref->attach, ref->sgt,
+					 DMA_BIDIRECTIONAL);
+		dma_buf_detach(shm->dmabuf, ref->attach);
+		dma_buf_put(ref->dmabuf);
+	} else if (shm->flags & TEE_SHM_POOL) {
 		struct tee_shm_pool_mgr *poolm;
 
 		if (shm->flags & TEE_SHM_DMA_BUF)
@@ -48,19 +48,22 @@ static void tee_shm_release(struct tee_shm *shm)
 
 		poolm->ops->free(poolm, shm);
 	} else if (shm->flags & TEE_SHM_REGISTER) {
+		size_t n;
 		int rc = teedev->desc->ops->shm_unregister(shm->ctx, shm);
 
 		if (rc)
 			dev_err(teedev->dev.parent,
 				"unregister shm %p failed: %d", shm, rc);
 
-		release_registered_pages(shm);
+		for (n = 0; n < shm->num_pages; n++)
+			put_page(shm->pages[n]);
+
+		kfree(shm->pages);
 	}
 
 	teedev_ctx_put(shm->ctx);
 
 	kfree(shm);
-
 	tee_device_put(teedev);
 }
 
@@ -240,7 +243,7 @@ struct tee_shm *tee_shm_register(struct tee_context *ctx, unsigned long addr,
 	}
 
 	if (flags & TEE_SHM_USER_MAPPED) {
-		rc = pin_user_pages_fast(start, num_pages, FOLL_WRITE,
+		rc = get_user_pages_fast(start, num_pages, FOLL_WRITE,
 					 shm->pages);
 	} else {
 		struct kvec *kiov;
@@ -304,12 +307,18 @@ struct tee_shm *tee_shm_register(struct tee_context *ctx, unsigned long addr,
 	return shm;
 err:
 	if (shm) {
+		size_t n;
+
 		if (shm->id >= 0) {
 			mutex_lock(&teedev->mutex);
 			idr_remove(&teedev->idr, shm->id);
 			mutex_unlock(&teedev->mutex);
 		}
-		release_registered_pages(shm);
+		if (shm->pages) {
+			for (n = 0; n < shm->num_pages; n++)
+				put_page(shm->pages[n]);
+			kfree(shm->pages);
+		}
 	}
 	kfree(shm);
 	teedev_ctx_put(ctx);
@@ -317,6 +326,98 @@ err:
 	return ret;
 }
 EXPORT_SYMBOL_GPL(tee_shm_register);
+
+struct tee_shm *tee_shm_register_fd(struct tee_context *ctx, int fd)
+{
+	struct tee_shm_dmabuf_ref *ref;
+	void *rc;
+	DEFINE_DMA_BUF_EXPORT_INFO(exp_info);
+
+	if (!tee_device_get(ctx->teedev))
+		return ERR_PTR(-EINVAL);
+
+	teedev_ctx_get(ctx);
+
+	ref = kzalloc(sizeof(*ref), GFP_KERNEL);
+	if (!ref) {
+		rc = ERR_PTR(-ENOMEM);
+		goto err;
+	}
+
+	ref->shm.ctx = ctx;
+	ref->shm.id = -1;
+
+	ref->dmabuf = dma_buf_get(fd);
+	if (!ref->dmabuf) {
+		rc = ERR_PTR(-EINVAL);
+		goto err;
+	}
+
+	ref->attach = dma_buf_attach(ref->dmabuf, &ctx->teedev->dev);
+	if (IS_ERR_OR_NULL(ref->attach)) {
+		rc = ERR_PTR(-EINVAL);
+		goto err;
+	}
+
+	ref->sgt = dma_buf_map_attachment(ref->attach, DMA_BIDIRECTIONAL);
+	if (IS_ERR_OR_NULL(ref->sgt)) {
+		rc = ERR_PTR(-EINVAL);
+		goto err;
+	}
+
+	if (sg_nents(ref->sgt->sgl) != 1) {
+		rc = ERR_PTR(-EINVAL);
+		goto err;
+	}
+
+	ref->shm.paddr = sg_dma_address(ref->sgt->sgl);
+	ref->shm.size = sg_dma_len(ref->sgt->sgl);
+	ref->shm.flags = TEE_SHM_DMA_BUF | TEE_SHM_EXT_DMA_BUF;
+
+	mutex_lock(&ctx->teedev->mutex);
+	ref->shm.id = idr_alloc(&ctx->teedev->idr, &ref->shm,
+				1, 0, GFP_KERNEL);
+	mutex_unlock(&ctx->teedev->mutex);
+	if (ref->shm.id < 0) {
+		rc = ERR_PTR(ref->shm.id);
+		goto err;
+	}
+
+	/* export a dmabuf to later get a userland ref */
+	exp_info.ops = &tee_shm_dma_buf_ops;
+	exp_info.size = ref->shm.size;
+	exp_info.flags = O_RDWR;
+	exp_info.priv = &ref->shm;
+
+	ref->shm.dmabuf = dma_buf_export(&exp_info);
+	if (IS_ERR(ref->shm.dmabuf)) {
+		rc = ERR_PTR(-EINVAL);
+		goto err;
+	}
+
+	return &ref->shm;
+
+err:
+	if (ref) {
+		if (ref->shm.id >= 0) {
+			mutex_lock(&ctx->teedev->mutex);
+			idr_remove(&ctx->teedev->idr, ref->shm.id);
+			mutex_unlock(&ctx->teedev->mutex);
+		}
+		if (ref->sgt)
+			dma_buf_unmap_attachment(ref->attach, ref->sgt,
+						 DMA_BIDIRECTIONAL);
+		if (ref->attach)
+			dma_buf_detach(ref->dmabuf, ref->attach);
+		if (ref->dmabuf)
+			dma_buf_put(ref->dmabuf);
+	}
+	kfree(ref);
+	teedev_ctx_put(ctx);
+	tee_device_put(ctx->teedev);
+	return rc;
+}
+EXPORT_SYMBOL_GPL(tee_shm_register_fd);
 
 /**
  * tee_shm_get_fd() - Increase reference count and return file descriptor
