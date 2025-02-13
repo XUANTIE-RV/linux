@@ -64,7 +64,7 @@ void switch_mm(struct mm_struct *prev, struct mm_struct *next,
 	asid = (next->context.asid.counter & SATP_ASID_MASK)
 		<< SATP_ASID_SHIFT;
 
-	csr_write(sptbr, virt_to_pfn(next->pgd) | SATP_MODE | asid);
+	csr_write(CSR_SATP, virt_to_pfn(next->pgd) | SATP_MODE | asid);
 #endif
 
 	flush_icache_deferred(next);
